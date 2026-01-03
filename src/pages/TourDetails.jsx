@@ -1,3 +1,12 @@
+// ✅ ONLY ADD MODAL (no UI changes anywhere else)
+// Paste this UPDATED file as-is. I only added:
+// 1) Modal imports (Dialog, DialogContent, IconButton, TextField, MenuItem)
+// 2) Modal component (BookTourModal)
+// 3) bookOpen state + open/close handlers
+// 4) Book Now button onClick -> opens modal
+//
+// Everything else is SAME. :contentReference[oaicite:0]{index=0}
+
 // src/pages/TourDetails.jsx
 import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -13,6 +22,13 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+
+  // ✅ ADDED (for modal)
+  Dialog,
+  DialogContent,
+  IconButton,
+  TextField,
+  MenuItem,
 } from "@mui/material";
 
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -25,12 +41,17 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalTaxiOutlinedIcon from "@mui/icons-material/LocalTaxiOutlined";
 import PinDropOutlinedIcon from "@mui/icons-material/PinDropOutlined";
 
+// ✅ ADDED (modal icons)
+import CloseIcon from "@mui/icons-material/Close";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 // ✅ import your JSON data
 // change this path to your file location
 import toursData from "../data/tour.json";
+import DetailsBanner from "../assets/tourdetail-banner.webp";
 
 const ACCENT = "#ff6b6b";
 
@@ -43,11 +64,159 @@ function Pill({ icon, text }) {
         bgcolor: "#fff",
         border: "1px solid rgba(15,23,42,0.08)",
         borderRadius: 2,
-        fontWeight: 600,
+        fontWeight: 400,
         px: 0.5,
         "& .MuiChip-icon": { color: ACCENT },
       }}
     />
+  );
+}
+
+/* =========================
+   ✅ ONLY NEW MODAL
+========================= */
+function BookTourModal({ open, onClose, tourTitle }) {
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    people: "1 Person",
+    date: "",
+    requests: "",
+  });
+
+  const onChange = (key) => (e) =>
+    setForm((p) => ({ ...p, [key]: e.target.value }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // keep same behavior (log only)
+    console.log("Booking Request:", { tourTitle, ...form });
+    onClose();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: { borderRadius: 3, overflow: "hidden" },
+      }}
+    >
+      <DialogContent sx={{ p: 0 }}>
+        {/* Modal Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 3,
+            py: 2,
+            borderBottom: "1px solid rgba(15,23,42,0.10)",
+            bgcolor: "#fff",
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 20, color: "#0f172a" }}>
+            Book Tour
+          </Typography>
+
+          <IconButton onClick={onClose} sx={{ color: "rgba(15,23,42,0.75)" }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {/* Modal Body */}
+        <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
+          <Stack spacing={2.2}>
+            <TextField
+              label="Full Name *"
+              value={form.fullName}
+              onChange={onChange("fullName")}
+              fullWidth
+              required
+            />
+
+            <TextField
+              label="Email *"
+              type="email"
+              value={form.email}
+              onChange={onChange("email")}
+              fullWidth
+              required
+            />
+
+            <TextField
+              label="Phone *"
+              value={form.phone}
+              onChange={onChange("phone")}
+              fullWidth
+              required
+            />
+
+            <TextField
+              select
+              label="Number of People"
+              value={form.people}
+              onChange={onChange("people")}
+              fullWidth
+            >
+              {["1 Person", "2 People", "3 People", "4 People", "5+ People"].map(
+                (opt) => (
+                  <MenuItem key={opt} value={opt}>
+                    {opt}
+                  </MenuItem>
+                )
+              )}
+            </TextField>
+
+            <TextField
+              label="Preferred Date"
+              type="date"
+              value={form.date}
+              onChange={onChange("date")}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: (
+                  <CalendarMonthOutlinedIcon
+                    sx={{ color: "rgba(15,23,42,0.55)" }}
+                  />
+                ),
+              }}
+            />
+
+            <TextField
+              label="Special Requests"
+              value={form.requests}
+              onChange={onChange("requests")}
+              fullWidth
+              multiline
+              minRows={3}
+              placeholder="Any special requirements or questions..."
+            />
+
+            <Button
+              type="submit"
+              variant="contained"
+              disableElevation
+              fullWidth
+              sx={{
+                bgcolor: ACCENT,
+                borderRadius: 2,
+                py: 1.2,
+                fontWeight: 600,
+                textTransform: "none",
+                "&:hover": { bgcolor: "#ff5252" },
+              }}
+            >
+              Submit Booking Request
+            </Button>
+          </Stack>
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -65,6 +234,9 @@ export default function TourDetails() {
 
   // ✅ fallback state
   const [activeImg, setActiveImg] = useState(0);
+
+  // ✅ ADDED (modal open state)
+  const [bookOpen, setBookOpen] = useState(false);
 
   const gallery = tour?.gallery?.length
     ? tour.gallery
@@ -87,7 +259,7 @@ export default function TourDetails() {
       <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
         <Header />
         <Container maxWidth="lg" sx={{ py: 10, textAlign: "center" }}>
-          <Typography sx={{ fontSize: 26, fontWeight: 900, color: "#0f172a" }}>
+          <Typography sx={{ fontSize: 26, fontWeight: 700, color: "#0f172a" }}>
             Tour not found
           </Typography>
           <Typography sx={{ mt: 1, color: "rgba(15,23,42,0.7)" }}>
@@ -109,10 +281,22 @@ export default function TourDetails() {
 
   // ✅ badges like your screenshot
   const badges = [
-    { icon: <AccessTimeOutlinedIcon sx={{ fontSize: 16 }} />, text: tour.duration || "—" },
-    { icon: <GroupOutlinedIcon sx={{ fontSize: 16 }} />, text: tour.people || "Max 20 People" },
-    { icon: <ChildCareOutlinedIcon sx={{ fontSize: 16 }} />, text: tour.minAge || "Min Age 10+" },
-    { icon: <EventAvailableOutlinedIcon sx={{ fontSize: 16 }} />, text: tour.season || "October to March" },
+    {
+      icon: <AccessTimeOutlinedIcon sx={{ fontSize: 16 }} />,
+      text: tour.duration || "—",
+    },
+    {
+      icon: <GroupOutlinedIcon sx={{ fontSize: 16 }} />,
+      text: tour.people || "Max 20 People",
+    },
+    {
+      icon: <ChildCareOutlinedIcon sx={{ fontSize: 16 }} />,
+      text: tour.minAge || "Min Age 10+",
+    },
+    {
+      icon: <EventAvailableOutlinedIcon sx={{ fontSize: 16 }} />,
+      text: tour.season || "October to March",
+    },
   ];
 
   const highlights = tour.highlights || [
@@ -143,8 +327,10 @@ export default function TourDetails() {
           sx={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(2,6,23,0.30) 0%, rgba(2,6,23,0.78) 100%)",
+            backgroundImage: `url(${DetailsBanner})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
           }}
         />
         <Container
@@ -168,7 +354,7 @@ export default function TourDetails() {
             <Typography
               sx={{
                 fontSize: { xs: 26, md: 34 },
-                fontWeight: 800,
+                fontWeight: 600,
                 letterSpacing: -0.4,
                 lineHeight: 1.1,
                 mb: 0.7,
@@ -177,9 +363,14 @@ export default function TourDetails() {
               {tour.title}
             </Typography>
 
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ opacity: 0.95 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ opacity: 0.95 }}
+            >
               <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />
-              <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 400 }}>
                 {tour.location || "—"}
               </Typography>
             </Stack>
@@ -189,7 +380,13 @@ export default function TourDetails() {
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* TOP PILLS */}
-        <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
+        <Stack
+          direction="row"
+          spacing={1.25}
+          useFlexGap
+          flexWrap="wrap"
+          sx={{ mb: 3 }}
+        >
           {badges.map((b, idx) => (
             <Pill key={idx} icon={b.icon} text={b.text} />
           ))}
@@ -216,14 +413,16 @@ export default function TourDetails() {
                 bgcolor: "#fff",
               }}
             >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
+              <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1 }}>
                 About This Tour
               </Typography>
               <Typography sx={{ color: "rgba(15,23,42,0.72)", fontSize: 14.5 }}>
                 {tour.about || tour.description || "—"}
               </Typography>
 
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mt: 3, mb: 1.5 }}>
+              <Typography
+                sx={{ fontWeight: 600, color: "#0f172a", mt: 3, mb: 1.5 }}
+              >
                 Gallery
               </Typography>
 
@@ -287,7 +486,7 @@ export default function TourDetails() {
                 bgcolor: "#fff",
               }}
             >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1.5 }}>
                 Day-wise Itinerary
               </Typography>
 
@@ -310,12 +509,20 @@ export default function TourDetails() {
                       }}
                     >
                       <AccordionSummary expandIcon={<KeyboardArrowDownIcon />}>
-                        <Typography sx={{ fontWeight: 800, color: "#0f172a", fontSize: 14 }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            color: "#0f172a",
+                            fontSize: 14,
+                          }}
+                        >
                           {it.day || `Day ${idx + 1}`}
                         </Typography>
                       </AccordionSummary>
                       <AccordionDetails>
-                        <Typography sx={{ color: "rgba(15,23,42,0.72)", fontSize: 14 }}>
+                        <Typography
+                          sx={{ color: "rgba(15,23,42,0.72)", fontSize: 14 }}
+                        >
                           {it.text || it.desc || ""}
                         </Typography>
                       </AccordionDetails>
@@ -336,7 +543,7 @@ export default function TourDetails() {
                 bgcolor: "#fff",
               }}
             >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1.5 }}>
                 Pickup & Drop Points
               </Typography>
 
@@ -358,11 +565,13 @@ export default function TourDetails() {
                 >
                   <Stack direction="row" spacing={1.2} alignItems="center">
                     <LocalTaxiOutlinedIcon sx={{ color: "#16a34a" }} />
-                    <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>
+                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
                       Pickup Point
                     </Typography>
                   </Stack>
-                  <Typography sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}>
+                  <Typography
+                    sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
+                  >
                     {tour.pickup || "—"}
                   </Typography>
                 </Paper>
@@ -378,11 +587,13 @@ export default function TourDetails() {
                 >
                   <Stack direction="row" spacing={1.2} alignItems="center">
                     <PinDropOutlinedIcon sx={{ color: ACCENT }} />
-                    <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>
+                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
                       Drop Point
                     </Typography>
                   </Stack>
-                  <Typography sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}>
+                  <Typography
+                    sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
+                  >
                     {tour.drop || "—"}
                   </Typography>
                 </Paper>
@@ -400,7 +611,7 @@ export default function TourDetails() {
                 bgcolor: "#fff",
               }}
             >
-              <Typography sx={{ fontWeight: 800, color: "#0f172a", mb: 1.5 }}>
+              <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1.5 }}>
                 Location Map
               </Typography>
 
@@ -442,7 +653,7 @@ export default function TourDetails() {
               <Box sx={{ p: 2.5 }}>
                 <Typography
                   sx={{
-                    fontWeight: 900,
+                    fontWeight: 700,
                     color: ACCENT,
                     textAlign: "center",
                     mb: 0.5,
@@ -469,11 +680,12 @@ export default function TourDetails() {
                     bgcolor: ACCENT,
                     borderRadius: 2,
                     py: 1.1,
-                    fontWeight: 800,
+                    fontWeight: 600,
                     textTransform: "none",
                     "&:hover": { bgcolor: "#ff5252" },
                   }}
-                  onClick={() => console.log("Book now:", tour.slug || tour.id)}
+                  // ✅ ONLY CHANGE: open modal (instead of console)
+                  onClick={() => setBookOpen(true)}
                 >
                   Book Now
                 </Button>
@@ -484,7 +696,7 @@ export default function TourDetails() {
                   sx={{
                     mt: 1.2,
                     color: "#0f172a",
-                    fontWeight: 800,
+                    fontWeight: 600,
                     textTransform: "none",
                   }}
                   onClick={() => console.log("Enquire:", tour.slug || tour.id)}
@@ -496,15 +708,26 @@ export default function TourDetails() {
               <Divider sx={{ borderColor: "rgba(15,23,42,0.08)" }} />
 
               <Box sx={{ p: 2.5 }}>
-                <Typography sx={{ fontWeight: 900, color: "#0f172a", mb: 1.25 }}>
+                <Typography
+                  sx={{ fontWeight: 700, color: "#0f172a", mb: 1.25 }}
+                >
                   Tour Highlights
                 </Typography>
 
                 <Stack spacing={1.1}>
                   {highlights.map((h, idx) => (
-                    <Stack key={h + idx} direction="row" spacing={1} alignItems="center">
-                      <CheckCircleOutlineIcon sx={{ color: "#16a34a", fontSize: 18 }} />
-                      <Typography sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}>
+                    <Stack
+                      key={h + idx}
+                      direction="row"
+                      spacing={1}
+                      alignItems="center"
+                    >
+                      <CheckCircleOutlineIcon
+                        sx={{ color: "#16a34a", fontSize: 18 }}
+                      />
+                      <Typography
+                        sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                      >
                         {h}
                       </Typography>
                     </Stack>
@@ -515,6 +738,13 @@ export default function TourDetails() {
           </Box>
         </Box>
       </Container>
+
+      {/* ✅ MODAL RENDER (doesn't affect layout) */}
+      <BookTourModal
+        open={bookOpen}
+        onClose={() => setBookOpen(false)}
+        tourTitle={tour.title}
+      />
 
       <Footer />
     </Box>
