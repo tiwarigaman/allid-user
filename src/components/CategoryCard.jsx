@@ -14,7 +14,6 @@ export default function CategoryCard({ item }) {
     "https://images.unsplash.com/photo-1526779259212-756e0e6d79a2?auto=format&fit=crop&w=1400&q=70";
 
   const go = () => {
-    // adjust route if needed
     const slug = item?.slug || (title || "").toLowerCase().replace(/\s+/g, "-");
     nav(`/category/${slug}`);
   };
@@ -35,6 +34,11 @@ export default function CategoryCard({ item }) {
           transform: "translateY(-4px)",
           boxShadow: "0 18px 45px rgba(15,23,42,0.14)",
         },
+
+        // ✅ image zoom on card hover
+        "&:hover .cat-img": {
+          transform: "scale(1.05)",
+        },
       }}
     >
       <Box
@@ -43,13 +47,14 @@ export default function CategoryCard({ item }) {
           borderRadius: 2,
           overflow: "hidden",
           border: "1px solid rgba(15,23,42,0.08)",
-          height: { xs: 240, sm: 260, md: 270 },
+          height: { xs: 220, sm: 260, md: 270 },
           bgcolor: "#0B1220",
         }}
       >
         {/* Image */}
         <Box
           component="img"
+          className="cat-img"
           src={img}
           alt={title}
           loading="lazy"
@@ -59,11 +64,10 @@ export default function CategoryCard({ item }) {
             objectFit: "cover",
             transform: "scale(1)",
             transition: "transform 350ms ease",
-            ".MuiPaper-root:hover &": { transform: "scale(1.04)" },
           }}
         />
 
-        {/* Overlay gradient like screenshot */}
+        {/* Overlay gradient */}
         <Box
           sx={{
             position: "absolute",
@@ -85,7 +89,7 @@ export default function CategoryCard({ item }) {
           <Typography
             sx={{
               color: "#fff",
-              fontWeight: 900,
+              fontWeight: 600,
               fontSize: { xs: 20, md: 22 },
               lineHeight: 1.15,
               textShadow: "0 6px 18px rgba(0,0,0,0.45)",

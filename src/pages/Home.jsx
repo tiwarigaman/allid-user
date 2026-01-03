@@ -239,33 +239,40 @@ export default function Home() {
       </Box>
 
       {/* CATEGORIES */}
+      {/* CATEGORIES */}
       <Box
         sx={{
           py: { xs: 7, md: 9 },
           bgcolor: "#F6F7FB",
         }}
       >
-        <Container
-          maxWidth="lg"
-          sx={{
-            px: { xs: 2, sm: 3, md: 4 }, // left/right padding (same as image feel)
-          }}
-        >
+        <Container maxWidth="lg">
           <SectionTitle
             title="Explore by Category"
             subtitle="Choose from our diverse range of travel experiences designed to suit every traveler's passion"
           />
 
-          <Grid container spacing={{ xs: 2.5, md: 3 }}>
+          <Grid
+            container
+            spacing={4} // more breathing space
+            justifyContent="center" // center grid
+          >
             {categories?.map((c) => (
               <Grid
                 key={c?.id || c?.slug || c?.name}
                 item
                 xs={12}
-                sm={4} // ✅ 3 cards from 600px+
-                md={4} // ✅ 3 cards from 900px+
+                sm={6}
+                md={4}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center", // center card inside column
+                }}
               >
-                <CategoryCard item={c} />
+                {/* 👇 width control */}
+                <Box sx={{ width: "100%", maxWidth: 360 }}>
+                  <CategoryCard item={c} />
+                </Box>
               </Grid>
             ))}
           </Grid>
