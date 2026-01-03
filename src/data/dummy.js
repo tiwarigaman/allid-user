@@ -39,6 +39,6 @@ export const blogs = [
     excerpt: "The backwaters of Kerala offer one of India's most unique travel experiences..." },
   { id: "b3", title: "Himalayan Trekking: Essential Tips for Beginners", date: "January 5, 2024",
     tags: ["Himalayas", "Trekking"],
-    image: "https://images.unsplash.com/photo-1526481280695-3c687fd643ed?q=80&w=1600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1516496636080-14fb876e029d?q=80&w=1600&auto=format&fit=crop",
     excerpt: "Embarking on your first Himalayan trek is an exciting adventure that requires preparation..." },
 ];

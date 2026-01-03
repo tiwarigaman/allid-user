@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
   Button,
   Container,
   Grid,
-  Paper,
   Stack,
   Typography,
   TextField,
@@ -14,39 +13,45 @@ import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
 import ShieldIcon from "@mui/icons-material/Shield";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CallIcon from "@mui/icons-material/Call";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-// ✅ your separate search component (adjust path/name if different)
+// ✅ Your separate search component
 import SearchArea from "../components/ToursSearchBar.jsx";
 
 import { categories, tours, blogs } from "../data/dummy";
-import { TourCard, BlogCard } from "../components/Cards";
 import CategoryCard from "../components/CategoryCard.jsx";
+import TourCard from "../components/TourCard.jsx";
+import BlogCard from "../components/BlogCard.jsx";
+
+// ✅ Use your asset background (single image)
+import heroBg from "../assets/banner-grid.webp";
 
 const SectionTitle = ({ title, subtitle }) => {
   return (
-    <Box sx={{ textAlign: "center", mb: { xs: 4, md: 5 } }}>
+    <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 } }}>
       <Typography
         sx={{
-          fontSize: { xs: 34, md: 52 },
-          fontWeight: 700,
+          fontSize: { xs: 28, sm: 35, md: 45 },
+          fontWeight: 600,
           letterSpacing: "-0.02em",
           color: "#0F172A",
-          lineHeight: 1.1,
-          fontSize: "42px",
+          lineHeight: 1.08,
         }}
       >
         {title}
       </Typography>
+
       {subtitle ? (
         <Typography
           sx={{
             mt: 1.2,
             color: "#64748B",
-            fontSize: { xs: 13, md: 16 },
-            maxWidth: 780,
+            fontSize: { xs: 14, md: 16 },
+            maxWidth: 820,
             mx: "auto",
             lineHeight: 1.6,
           }}
@@ -59,6 +64,20 @@ const SectionTitle = ({ title, subtitle }) => {
 };
 
 export default function Home() {
+  // ✅ If your SearchArea expects props (q/setQ/cat/setCat/sort/setSort)
+  // this prevents runtime errors.
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
+  const [sort, setSort] = useState("popular");
+
+  const categoryOptions = useMemo(() => {
+    const opts = (categories || []).map((c) => ({
+      label: c?.name || "Category",
+      value: c?.slug || (c?.name || "").toLowerCase().replace(/\s+/g, "-"),
+    }));
+    return [{ label: "All Categories", value: "" }, ...opts];
+  }, []);
+
   const why = [
     {
       title: "15+ Years Experience",
@@ -82,11 +101,18 @@ export default function Home() {
     },
   ];
 
+  // ✅ Shared container sizing (fixes “too close to screen”)
+  const sectionContainerSx = {
+    maxWidth: 1240,
+    mx: "auto",
+    px: { xs: 2, sm: 3, md: 4 },
+  };
+
   return (
     <>
       <Header />
 
-      {/* HERO (collage background + exact vibe) */}
+      {/* HERO */}
       <Box
         sx={{
           position: "relative",
@@ -95,76 +121,17 @@ export default function Home() {
           borderBottom: "1px solid rgba(15, 23, 42, 0.06)",
         }}
       >
-        {/* collage grid */}
+        {/* ✅ single background image */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gridTemplateRows: "repeat(6, 1fr)",
-            gap: "2px",
+            backgroundImage: `url(${heroBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transform: "scale(1.02)",
           }}
-        >
-          {[
-            // top row
-            {
-              col: "1 / span 4",
-              row: "1 / span 2",
-              url: "https://images.unsplash.com/photo-1586088422111-1e1dbd3c8d1e?q=80&w=1600&auto=format&fit=crop",
-            },
-            {
-              col: "5 / span 4",
-              row: "1 / span 2",
-              url: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop",
-            },
-            {
-              col: "9 / span 4",
-              row: "1 / span 2",
-              url: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1600&auto=format&fit=crop",
-            },
-
-            // middle
-            {
-              col: "1 / span 6",
-              row: "3 / span 2",
-              url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
-            },
-            {
-              col: "7 / span 6",
-              row: "3 / span 2",
-              url: "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=1600&auto=format&fit=crop",
-            },
-
-            // bottom
-            {
-              col: "1 / span 4",
-              row: "5 / span 2",
-              url: "https://images.unsplash.com/photo-1463694775559-eea25626346b?q=80&w=1600&auto=format&fit=crop",
-            },
-            {
-              col: "5 / span 4",
-              row: "5 / span 2",
-              url: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop",
-            },
-            {
-              col: "9 / span 4",
-              row: "5 / span 2",
-              url: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1600&auto=format&fit=crop",
-            },
-          ].map((x, i) => (
-            <Box
-              key={i}
-              sx={{
-                gridColumn: x.col,
-                gridRow: x.row,
-                backgroundImage: `url(${x.url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
-          ))}
-        </Box>
+        />
 
         {/* overlay */}
         <Box
@@ -172,30 +139,28 @@ export default function Home() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.45) 50%, rgba(2,6,23,0.55) 100%)",
+              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.45) 50%, rgba(2,6,23,0.58) 100%)",
           }}
         />
 
-        {/* content */}
         <Container
           maxWidth={false}
-          className="wrap"
           sx={{ position: "relative", height: "100%" }}
         >
           <Box
             sx={{
-              pt: { xs: "130px", md: "200px" },
-              pb: { xs: 8, md: 10 },
+              pt: { xs: "120px", sm: "140px", md: "190px" },
+              pb: { xs: 7, md: 10 },
               display: "flex",
               justifyContent: "center",
               textAlign: "center",
             }}
           >
-            <Box sx={{ maxWidth: 980, width: "100%", px: 2 }}>
+            <Box sx={{ maxWidth: 1040, width: "100%", px: 2 }}>
               <Typography
                 sx={{
-                  fontSize: { xs: 44, md: 78 },
-                  fontWeight: 800,
+                  fontSize: { xs: 38, sm: 48, md: 78 },
+                  fontWeight: 700,
                   letterSpacing: "-0.02em",
                   lineHeight: 1.02,
                   color: "white",
@@ -210,10 +175,10 @@ export default function Home() {
               <Typography
                 sx={{
                   mt: 2,
-                  color: "rgba(255,255,255,0.9)",
+                  color: "rgba(255,255,255,0.92)",
                   fontSize: { xs: 14, md: 18 },
                   lineHeight: 1.7,
-                  maxWidth: 820,
+                  maxWidth: 860,
                   mx: "auto",
                 }}
               >
@@ -221,16 +186,69 @@ export default function Home() {
                 and authentic local experiences
               </Typography>
 
-              {/* ✅ your separate SearchArea component */}
+              {/* Search Area */}
               <Box
                 sx={{
-                  mt: { xs: 4, md: 5 },
+                  mt: { xs: 3.5, md: 5 },
                   display: "flex",
                   justifyContent: "center",
                 }}
               >
                 <Box sx={{ width: "100%", maxWidth: 980 }}>
-                  <SearchArea />
+                  <SearchArea
+                    q={q}
+                    setQ={setQ}
+                    cat={cat}
+                    setCat={setCat}
+                    sort={sort}
+                    setSort={setSort}
+                    categoryOptions={categoryOptions}
+                  />
+
+                  {/* ✅ Buttons under search (like your screenshot) */}
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={2}
+                    justifyContent="center"
+                    sx={{ mt: 2.2 }}
+                  >
+                    <Button
+                      variant="contained"
+                      startIcon={<LocationOnIcon />}
+                      sx={{
+                        bgcolor: "#FF6B6B",
+                        "&:hover": { bgcolor: "#ff5656" },
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1.25,
+                        fontWeight: 600,
+                        textTransform: "none",
+                        boxShadow: "0 12px 26px rgba(255,107,107,0.35)",
+                      }}
+                    >
+                      Explore Tours
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      startIcon={<CallIcon />}
+                      sx={{
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1.25,
+                        fontWeight: 600,
+                        textTransform: "none",
+                        color: "white",
+                        borderColor: "rgba(255,255,255,0.35)",
+                        "&:hover": {
+                          borderColor: "rgba(255,255,255,0.65)",
+                          bgcolor: "rgba(255,255,255,0.08)",
+                        },
+                      }}
+                    >
+                      Contact Us
+                    </Button>
+                  </Stack>
                 </Box>
               </Box>
             </Box>
@@ -239,60 +257,62 @@ export default function Home() {
       </Box>
 
       {/* CATEGORIES */}
-      {/* CATEGORIES */}
-      <Box
-        sx={{
-          py: { xs: 7, md: 9 },
-          bgcolor: "#F6F7FB",
-        }}
-      >
-        <Container maxWidth="lg">
+      <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#F6F7FB" }}>
+        <Container maxWidth={false} sx={sectionContainerSx}>
           <SectionTitle
             title="Explore by Category"
             subtitle="Choose from our diverse range of travel experiences designed to suit every traveler's passion"
           />
 
-          <Grid
-            container
-            spacing={4} // more breathing space
-            justifyContent="center" // center grid
+          {/* ✅ grid layout that stays centered + 3 columns on desktop */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
+              gap: { xs: 3, md: 4 },
+              alignItems: "stretch",
+            }}
           >
-            {categories?.map((c) => (
-              <Grid
-                key={c?.id || c?.slug || c?.name}
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                sx={{
-                  display: "flex",
-                  justifyContent: "center", // center card inside column
-                }}
-              >
-                {/* 👇 width control */}
-                <Box sx={{ width: "100%", maxWidth: 360 }}>
-                  <CategoryCard item={c} />
-                </Box>
-              </Grid>
+            {(categories || []).map((c) => (
+              <Box key={c?.id || c?.slug || c?.name} sx={{ minWidth: 0 }}>
+                <CategoryCard item={c} />
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
 
       {/* FEATURED TOURS */}
       <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "white" }}>
-        <Container maxWidth={false} className="wrap">
+        <Container maxWidth={false} sx={sectionContainerSx}>
           <SectionTitle
             title="Featured Tours"
             subtitle="Handpicked destinations and experiences that showcase the best of India"
           />
-          <Grid container spacing={3}>
-            {tours?.slice(0, 6)?.map((t) => (
-              <Grid key={t?.id || t?.slug || t?.title} item xs={12} md={6}>
+
+          {/* ✅ 1 mobile, 2 tablet, 3 desktop ALWAYS */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
+              gap: { xs: 3, md: 4 },
+              alignItems: "stretch",
+            }}
+          >
+            {(tours || []).slice(0, 6).map((t) => (
+              <Box key={t?.id || t?.slug || t?.title} sx={{ minWidth: 0 }}>
                 <TourCard item={t} />
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
 
           <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
             <Button
@@ -305,7 +325,8 @@ export default function Home() {
                 px: 3,
                 py: 1.2,
                 boxShadow: "0 10px 24px rgba(255,107,107,0.35)",
-                fontWeight: 900,
+                fontWeight: 600,
+                textTransform: "none",
               }}
             >
               View All Tours
@@ -315,16 +336,66 @@ export default function Home() {
       </Box>
 
       {/* WHY CHOOSE */}
-      <Box sx={{ py: { xs: 8, md: 10 }, bgcolor: "#0F4C4F" }}>
-        <Container maxWidth={false} className="wrap">
+      <Box
+        sx={{
+          position: "relative",
+          py: { xs: 8, md: 10 },
+          bgcolor: "#0F4C4F",
+          overflow: "hidden",
+        }}
+      >
+        {/* circles */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 55,
+            left: 44,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.18)",
+            opacity: 0.45,
+            pointerEvents: "none",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            top: 240,
+            left: 315,
+            width: 78,
+            height: 78,
+            borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.18)",
+            opacity: 0.35,
+            pointerEvents: "none",
+            display: { xs: "none", md: "block" },
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 90,
+            right: 64,
+            width: 120,
+            height: 120,
+            borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.18)",
+            opacity: 0.45,
+            pointerEvents: "none",
+            display: { xs: "none", md: "block" },
+          }}
+        />
+
+        <Container maxWidth={false} sx={sectionContainerSx}>
           <Typography
             sx={{
               color: "white",
               textAlign: "center",
-              fontSize: { xs: 30, md: 48 },
-              fontWeight: 900,
+              fontSize: { xs: 24, sm: 28, md: 35 },
+              fontWeight: 700,
               letterSpacing: "-0.02em",
-              lineHeight: 1.15,
+              lineHeight: 1.1,
             }}
           >
             Why Choose All India Destination?
@@ -334,54 +405,62 @@ export default function Home() {
             sx={{
               color: "rgba(255,255,255,0.85)",
               textAlign: "center",
-              mt: 1,
-              maxWidth: 780,
+              mt: 1.2,
+              maxWidth: 820,
               mx: "auto",
               lineHeight: 1.6,
+              fontSize: { xs: 14.5, md: 16 },
             }}
           >
             We create unforgettable travel experiences with our expertise,
             passion, and commitment to excellence
           </Typography>
 
-          <Grid container spacing={3} sx={{ mt: 6 }}>
+          <Grid
+            container
+            spacing={{ xs: 5, md: 3 }}
+            sx={{ mt: { xs: 6, md: 8 } }}
+            justifyContent="center" // ✅ THIS IS THE KEY FIX
+          >
             {why.map((x) => (
-              <Grid key={x.title} item xs={12} md={3}>
-                <Paper
-                  sx={{
-                    p: 3,
-                    bgcolor: "transparent",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    boxShadow: "none",
-                    textAlign: "center",
-                    borderRadius: 3,
-                    height: "100%",
-                  }}
-                >
+              <Grid key={x.title} item xs={12} sm={6} md={3}>
+                <Box sx={{ textAlign: "center" }}>
                   <Box
                     sx={{
-                      width: 56,
-                      height: 56,
+                      width: 70,
+                      height: 70,
                       borderRadius: "50%",
                       display: "grid",
                       placeItems: "center",
                       bgcolor: "#FF6B6B",
                       mx: "auto",
-                      mb: 2,
-                      "& svg": { color: "white" },
+                      mb: 3,
+                      boxShadow: "0 14px 30px rgba(255,107,107,0.25)",
+                      "& svg": { color: "white", fontSize: 28 },
                     }}
                   >
                     {x.icon}
                   </Box>
+
                   <Typography
-                    sx={{ color: "white", fontWeight: 900, fontSize: 18 }}
+                    sx={{ color: "white", fontWeight: 700, fontSize: 20 }}
                   >
                     {x.title}
                   </Typography>
-                  <Typography sx={{ color: "rgba(255,255,255,0.78)", mt: 1 }}>
+
+                  <Typography
+                    sx={{
+                      color: "rgba(255,255,255,0.78)",
+                      mt: 1.2,
+                      maxWidth: 260,
+                      mx: "auto",
+                      lineHeight: 1.55,
+                      fontSize: { xs: 14, md: 15 },
+                    }}
+                  >
                     {x.desc}
                   </Typography>
-                </Paper>
+                </Box>
               </Grid>
             ))}
           </Grid>
@@ -390,24 +469,44 @@ export default function Home() {
 
       {/* BLOGS */}
       <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#F6F7FB" }}>
-        <Container maxWidth={false} className="wrap">
+        <Container maxWidth={false} sx={sectionContainerSx}>
           <SectionTitle
             title="Travel Stories & Tips"
             subtitle="Get inspired by our latest travel stories, tips, and destination guides"
           />
-          <Grid container spacing={3}>
-            {blogs?.slice(0, 3)?.map((b) => (
-              <Grid key={b?.id || b?.slug || b?.title} item xs={12} md={4}>
-                <BlogCard item={b} />
-              </Grid>
-            ))}
-          </Grid>
 
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+          {/* ✅ FORCE 3 cards on desktop (prevents “one giant card” issue) */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
+              gap: { xs: 3, md: 4 },
+              alignItems: "stretch",
+              mt: 1,
+            }}
+          >
+            {(blogs || []).slice(0, 3).map((b) => (
+              <Box key={b?.id || b?.slug || b?.title} sx={{ minWidth: 0 }}>
+                <BlogCard item={b} />
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
             <Button
               variant="text"
               endIcon={<ArrowRightAltIcon />}
-              sx={{ fontWeight: 900 }}
+              sx={{
+                fontWeight: 700,
+                color: "#0B1220",
+                textTransform: "none",
+                fontSize: 16,
+                "&:hover": { bgcolor: "transparent", opacity: 0.9 },
+              }}
             >
               Read More Stories
             </Button>
@@ -423,13 +522,13 @@ export default function Home() {
             "linear-gradient(90deg, #ff6b6b 0%, #ff8a8a 55%, #ff6b6b 100%)",
         }}
       >
-        <Container maxWidth={false} className="wrap">
+        <Container maxWidth={false} sx={sectionContainerSx}>
           <Typography
             sx={{
               color: "white",
               textAlign: "center",
-              fontSize: { xs: 34, md: 56 },
-              fontWeight: 900,
+              fontSize: { xs: 28, md: 35 },
+              fontWeight: 600,
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
             }}
@@ -450,20 +549,6 @@ export default function Home() {
             justifyContent="center"
             sx={{ mt: 5 }}
           >
-            <Button
-              variant="contained"
-              sx={{
-                bgcolor: "rgba(255,255,255,0.18)",
-                boxShadow: "none",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
-                borderRadius: 999,
-                px: 3,
-                py: 1.2,
-                fontWeight: 900,
-              }}
-            >
-              Get Free Quote
-            </Button>
 
             <TextField
               placeholder="Your Phone / Email"
@@ -476,6 +561,22 @@ export default function Home() {
                 },
               }}
             />
+            
+            <Button
+              variant="contained"
+              sx={{
+                bgcolor: "rgba(255,255,255,0.18)",
+                boxShadow: "none",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
+                borderRadius: 999,
+                px: 3,
+                py: 1.2,
+                fontWeight: 700,
+                textTransform: "none",
+              }}
+            >
+              Get Free Quote
+            </Button>
           </Stack>
         </Container>
       </Box>

@@ -89,10 +89,11 @@ export default function CategoryCard({ item }) {
           <Typography
             sx={{
               color: "#fff",
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: { xs: 20, md: 22 },
               lineHeight: 1.15,
               textShadow: "0 6px 18px rgba(0,0,0,0.45)",
+               fontFamily:"ui-sans-serif,system-ui,sans-serif",
             }}
           >
             {title}
@@ -110,6 +111,7 @@ export default function CategoryCard({ item }) {
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
+                 fontFamily:"ui-sans-serif,system-ui,sans-serif",
               }}
             >
               {subtitle}
