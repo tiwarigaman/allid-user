@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -19,6 +20,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { categories } from "../data/dummy";
 
 export default function Header() {
+  const navigate = useNavigate();
+
   const [openCat, setOpenCat] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,6 +37,20 @@ export default function Header() {
   const linkColor = scrolled ? "#0F172A" : "rgba(255,255,255,0.92)";
   const subColor = scrolled ? "rgba(15,23,42,0.55)" : "rgba(255,255,255,0.72)";
   const hoverColor = scrolled ? "#2563EB" : "#FFFFFF";
+
+  const go = (to) => {
+    // Close any open menus before navigating
+    setOpenCat(false);
+    setMobileCat(false);
+    setMobileOpen(false);
+    navigate(to);
+  };
+
+  const goCategory = (c) => {
+    // Use slug if available, otherwise fallback to id/name
+    const key = c?.slug ?? c?.id ?? c?.name;
+    go(`/category/${encodeURIComponent(String(key))}`);
+  };
 
   return (
     <>
@@ -58,6 +75,7 @@ export default function Header() {
             {/* LOGO */}
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1 }}>
               <Box
+                onClick={() => go("/")}
                 sx={{
                   width: 42,
                   height: 42,
@@ -65,6 +83,7 @@ export default function Header() {
                   bgcolor: scrolled ? "#0F172A" : "rgba(0,0,0,0.35)",
                   display: "grid",
                   placeItems: "center",
+                  cursor: "pointer",
                 }}
               >
                 <Box
@@ -75,7 +94,7 @@ export default function Header() {
                 />
               </Box>
 
-              <Box>
+              <Box sx={{ cursor: "pointer" }} onClick={() => go("/")}>
                 <Typography sx={{ fontWeight: 900, color: linkColor }}>
                   All India Destination
                 </Typography>
@@ -92,8 +111,13 @@ export default function Header() {
               alignItems="center"
               sx={{ display: { xs: "none", md: "flex" }, position: "relative" }}
             >
-              <NavItem label="Home" color={linkColor} hover={hoverColor} />
-              <NavItem label="All Tours" color={linkColor} hover={hoverColor} />
+              <NavItem label="Home" to="/" color={linkColor} hover={hoverColor} />
+              <NavItem
+                label="All Tours"
+                to="/tours"
+                color={linkColor}
+                hover={hoverColor}
+              />
 
               {/* Categories (hover desktop) */}
               <Box
@@ -101,7 +125,12 @@ export default function Header() {
                 onMouseLeave={() => setOpenCat(false)}
                 sx={{ position: "relative" }}
               >
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                <Stack
+                  direction="row"
+                  spacing={0.5}
+                  alignItems="center"
+                  sx={{ cursor: "pointer" }}
+                >
                   <Typography sx={{ fontWeight: 500, color: linkColor }}>
                     Categories
                   </Typography>
@@ -121,7 +150,11 @@ export default function Header() {
                     }}
                   >
                     {categories.slice(0, 6).map((c) => (
-                      <MenuItem key={c.id} sx={{ fontWeight: 700 }}>
+                      <MenuItem
+                        key={c.id}
+                        onClick={() => goCategory(c)}
+                        sx={{ fontWeight: 700 }}
+                      >
                         {c.name}
                       </MenuItem>
                     ))}
@@ -129,12 +162,18 @@ export default function Header() {
                 )}
               </Box>
 
-              <NavItem label="Blogs" color={linkColor} hover={hoverColor} />
-              <NavItem label="Contact" color={linkColor} hover={hoverColor} />
+              <NavItem label="Blogs" to="/blogs" color={linkColor} hover={hoverColor} />
+              <NavItem
+                label="Contact"
+                to="/contact"
+                color={linkColor}
+                hover={hoverColor}
+              />
 
               <Button
                 variant="contained"
                 startIcon={<CallIcon />}
+                onClick={() => go("/contact")}
                 sx={{
                   bgcolor: "#FF6B6B",
                   "&:hover": { bgcolor: "#ff5656" },
@@ -157,11 +196,7 @@ export default function Header() {
       </AppBar>
 
       {/* MOBILE DRAWER */}
-      <Drawer
-        anchor="right"
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      >
+      <Drawer anchor="right" open={mobileOpen} onClose={() => setMobileOpen(false)}>
         <Box sx={{ width: 280, p: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography fontWeight={900}>Menu</Typography>
@@ -171,15 +206,15 @@ export default function Header() {
           </Stack>
 
           <Stack spacing={2} sx={{ mt: 3 }}>
-            <MobileItem label="Home" />
-            <MobileItem label="All Tours" />
+            <MobileItem label="Home" onClick={() => go("/")} />
+            <MobileItem label="All Tours" onClick={() => go("/tours")} />
 
             {/* Categories tap */}
             <Box>
               <Stack
                 direction="row"
                 justifyContent="space-between"
-                onClick={() => setMobileCat(!mobileCat)}
+                onClick={() => setMobileCat((v) => !v)}
                 sx={{ cursor: "pointer" }}
               >
                 <Typography fontWeight={700}>Categories</Typography>
@@ -189,7 +224,11 @@ export default function Header() {
               {mobileCat && (
                 <Stack sx={{ pl: 2, mt: 1 }}>
                   {categories.slice(0, 6).map((c) => (
-                    <Typography key={c.id} sx={{ py: 0.5 }}>
+                    <Typography
+                      key={c.id}
+                      onClick={() => goCategory(c)}
+                      sx={{ py: 0.5, cursor: "pointer", fontWeight: 600 }}
+                    >
                       {c.name}
                     </Typography>
                   ))}
@@ -197,12 +236,13 @@ export default function Header() {
               )}
             </Box>
 
-            <MobileItem label="Blogs" />
-            <MobileItem label="Contact" />
+            <MobileItem label="Blogs" onClick={() => go("/blogs")} />
+            <MobileItem label="Contact" onClick={() => go("/contact")} />
 
             <Button
               variant="contained"
               startIcon={<CallIcon />}
+              onClick={() => go("/contact")}
               sx={{
                 mt: 2,
                 bgcolor: "#FF6B6B",
@@ -218,9 +258,12 @@ export default function Header() {
   );
 }
 
-function NavItem({ label, color, hover }) {
+function NavItem({ label, to, color, hover }) {
+  const navigate = useNavigate();
+
   return (
     <Typography
+      onClick={() => navigate(to)}
       sx={{
         fontWeight: 500,
         color,
@@ -233,9 +276,9 @@ function NavItem({ label, color, hover }) {
   );
 }
 
-function MobileItem({ label }) {
+function MobileItem({ label, onClick }) {
   return (
-    <Typography sx={{ fontWeight: 700, cursor: "pointer" }}>
+    <Typography onClick={onClick} sx={{ fontWeight: 700, cursor: "pointer" }}>
       {label}
     </Typography>
   );

@@ -418,14 +418,20 @@ export default function Tours() {
                   </InputAdornment>
                 ),
                 endAdornment: (
-                  <InputAdornment position="end">
+                  <InputAdornment
+                    position="end"
+                    sx={{
+                      // ✅ FIX: remove the extra space on the right of the button
+                      mr: 0,
+                    }}
+                  >
                     <IconButton
                       sx={{
                         bgcolor: ACCENT,
                         color: "#fff",
                         borderRadius: 2,
                         width: 54,
-                        height: 54,
+                        height: 44,
                         "&:hover": { bgcolor: "#ff5252" },
                       }}
                       onClick={() => console.log("search:", search)}
@@ -437,9 +443,17 @@ export default function Tours() {
               }}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  height: 56,
+                  height: 45,
                   borderRadius: 2.25,
                   bgcolor: "#fff",
+
+                  // ✅ FIX: MUI adds right padding when endAdornment exists
+                  pr: 0,
+
+                  // ✅ ensure adornment has no extra gap
+                  "& .MuiInputAdornment-positionEnd": {
+                    marginRight: 0,
+                  },
                 },
               }}
             />
@@ -469,7 +483,7 @@ export default function Tours() {
                 onChange={(e) => setSort(e.target.value)}
                 sx={{
                   borderRadius: 2,
-                  height: 56,
+                  height: 44,
                   fontWeight: 500,
                   bgcolor: "#fff",
                 }}
