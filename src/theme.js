@@ -11,10 +11,10 @@ export default createTheme({
   },
   typography: {
     fontFamily:
-      '"Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif',
+      '"ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji"',
     fontSize: 14,
-    h1: { fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.1 },
-    h2: { fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.12 },
+    h1: { fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.1 },
+    h2: { fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.12 },
     body1: { fontSize: 15, fontWeight: 500, lineHeight: 1.6 },
     body2: { fontSize: 14, fontWeight: 600, lineHeight: 1.45 },
     button: { fontSize: 14, fontWeight: 800, textTransform: "none" },

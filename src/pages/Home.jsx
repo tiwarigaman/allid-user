@@ -1,110 +1,166 @@
+import React from "react";
 import {
   Box,
   Button,
   Container,
   Grid,
-  Stack,
-  TextField,
-  Typography,
   Paper,
+  Stack,
+  Typography,
+  TextField,
 } from "@mui/material";
-
-import SearchIcon from "@mui/icons-material/Search";
-import PlaceIcon from "@mui/icons-material/Place";
-import PhoneInTalkIcon from "@mui/icons-material/PhoneInTalk";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
-import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined";
-import HeadsetMicOutlinedIcon from "@mui/icons-material/HeadsetMicOutlined";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
-import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
+import ShieldIcon from "@mui/icons-material/Shield";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import SectionTitle from "../components/SectionTitle";
-import { BlogCard, CategoryCard, TourCard } from "../components/Cards";
-import { blogs, categories, tours } from "../data/dummy";
 
-// ✅ Use MORE images + mosaic layout (this is what fixes those big vertical panels)
-const collage = [
-  "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1600&auto=format&fit=crop", // Taj
-  "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop", // Arch
-  "https://images.unsplash.com/photo-1526481280695-3c687fd643ed?q=80&w=1600&auto=format&fit=crop", // Temple
-  "https://images.unsplash.com/photo-1463694775559-eea25626346b?q=80&w=1600&auto=format&fit=crop", // Nature
-  "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=1600&auto=format&fit=crop", // Mountains
-  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=1600&auto=format&fit=crop", // Water
-  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop", // City
-  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop", // Landscape
-];
+// ✅ your separate search component (adjust path/name if different)
+import SearchArea from "../components/ToursSearchBar.jsx";
 
-const mosaic = [
-  { srcIndex: 0, area: "a" },
-  { srcIndex: 1, area: "b" },
-  { srcIndex: 2, area: "c" },
-  { srcIndex: 3, area: "d" },
-  { srcIndex: 4, area: "e" },
-  { srcIndex: 5, area: "f" },
-  { srcIndex: 6, area: "g" },
-  { srcIndex: 7, area: "h" },
-];
+import { categories, tours, blogs } from "../data/dummy";
+import { TourCard, BlogCard } from "../components/Cards";
+import CategoryCard from "../components/CategoryCard.jsx";
 
-const why = [
-  {
-    icon: <WorkspacePremiumOutlinedIcon />,
-    title: "15+ Years Experience",
-    desc: "Trusted by thousands of travelers worldwide",
-  },
-  {
-    icon: <HeadsetMicOutlinedIcon />,
-    title: "24/7 Support",
-    desc: "Round-the-clock assistance for your peace of mind",
-  },
-  {
-    icon: <VerifiedUserOutlinedIcon />,
-    title: "Safe & Secure",
-    desc: "Your safety is our top priority",
-  },
-  {
-    icon: <PaidOutlinedIcon />,
-    title: "Best Prices",
-    desc: "Competitive rates with no hidden costs",
-  },
-];
+const SectionTitle = ({ title, subtitle }) => {
+  return (
+    <Box sx={{ textAlign: "center", mb: { xs: 4, md: 5 } }}>
+      <Typography
+        sx={{
+          fontSize: { xs: 34, md: 52 },
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          color: "#0F172A",
+          lineHeight: 1.1,
+          fontSize: "42px",
+        }}
+      >
+        {title}
+      </Typography>
+      {subtitle ? (
+        <Typography
+          sx={{
+            mt: 1.2,
+            color: "#64748B",
+            fontSize: { xs: 13, md: 16 },
+            maxWidth: 780,
+            mx: "auto",
+            lineHeight: 1.6,
+          }}
+        >
+          {subtitle}
+        </Typography>
+      ) : null}
+    </Box>
+  );
+};
 
 export default function Home() {
+  const why = [
+    {
+      title: "15+ Years Experience",
+      desc: "Trusted by thousands of travelers worldwide",
+      icon: <WorkspacePremiumIcon />,
+    },
+    {
+      title: "24/7 Support",
+      desc: "Round-the-clock assistance for your peace of mind",
+      icon: <HeadsetMicIcon />,
+    },
+    {
+      title: "Safe & Secure",
+      desc: "Your safety is our top priority",
+      icon: <ShieldIcon />,
+    },
+    {
+      title: "Best Prices",
+      desc: "Competitive rates with no hidden costs",
+      icon: <CurrencyRupeeIcon />,
+    },
+  ];
+
   return (
     <>
       <Header />
 
-      {/* HERO */}
-      <Box sx={{ position: "relative", height: { xs: 560, md: 700 }, overflow: "hidden" }}>
-        {/* ✅ Collage Mosaic Background */}
+      {/* HERO (collage background + exact vibe) */}
+      <Box
+        sx={{
+          position: "relative",
+          minHeight: { xs: 520, md: 680 },
+          overflow: "hidden",
+          borderBottom: "1px solid rgba(15, 23, 42, 0.06)",
+        }}
+      >
+        {/* collage grid */}
         <Box
           sx={{
             position: "absolute",
             inset: 0,
             display: "grid",
-            gap: "2px",
             gridTemplateColumns: "repeat(12, 1fr)",
             gridTemplateRows: "repeat(6, 1fr)",
-            gridTemplateAreas: `
-              "a a a a b b b b c c c c"
-              "a a a a b b b b c c c c"
-              "d d d e e e e f f f f f"
-              "d d d e e e e f f f f f"
-              "g g g g g h h h h h h h"
-              "g g g g g h h h h h h h"
-            `,
+            gap: "2px",
           }}
         >
-          {mosaic.map((x) => (
+          {[
+            // top row
+            {
+              col: "1 / span 4",
+              row: "1 / span 2",
+              url: "https://images.unsplash.com/photo-1586088422111-1e1dbd3c8d1e?q=80&w=1600&auto=format&fit=crop",
+            },
+            {
+              col: "5 / span 4",
+              row: "1 / span 2",
+              url: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop",
+            },
+            {
+              col: "9 / span 4",
+              row: "1 / span 2",
+              url: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1600&auto=format&fit=crop",
+            },
+
+            // middle
+            {
+              col: "1 / span 6",
+              row: "3 / span 2",
+              url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
+            },
+            {
+              col: "7 / span 6",
+              row: "3 / span 2",
+              url: "https://images.unsplash.com/photo-1470770903676-69b98201ea1c?q=80&w=1600&auto=format&fit=crop",
+            },
+
+            // bottom
+            {
+              col: "1 / span 4",
+              row: "5 / span 2",
+              url: "https://images.unsplash.com/photo-1463694775559-eea25626346b?q=80&w=1600&auto=format&fit=crop",
+            },
+            {
+              col: "5 / span 4",
+              row: "5 / span 2",
+              url: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop",
+            },
+            {
+              col: "9 / span 4",
+              row: "5 / span 2",
+              url: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1600&auto=format&fit=crop",
+            },
+          ].map((x, i) => (
             <Box
-              key={x.area}
+              key={i}
               sx={{
-                gridArea: x.area,
-                backgroundImage: `url(${collage[x.srcIndex]})`,
+                gridColumn: x.col,
+                gridRow: x.row,
+                backgroundImage: `url(${x.url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                filter: "saturate(1.05)",
               }}
             />
           ))}
@@ -116,113 +172,99 @@ export default function Home() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.35) 100%)",
+              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.45) 50%, rgba(2,6,23,0.55) 100%)",
           }}
         />
 
-        <Container maxWidth={false} className="wrap" sx={{ position: "relative", height: "100%" }}>
-          <Box sx={{ pt: { xs: 10, md: 14 }, textAlign: "center" }}>
-            <Typography
-              variant="h1"
-              sx={{
-                color: "white",
-                fontSize: { xs: 44, md: 72 },
-                fontWeight: 900,
-                lineHeight: 1.05,
-              }}
-            >
-              Discover <span style={{ color: "#FF6B6B" }}>Incredible India</span>
-            </Typography>
-
-            <Typography sx={{ mt: 2, color: "rgba(255,255,255,0.92)", fontSize: 16, maxWidth: 820, mx: "auto" }}>
-              Experience the magic of India with our carefully curated tours and authentic local experiences
-            </Typography>
-
-            {/* search */}
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={1.5}
-              sx={{
-                mt: 6,
-                mx: "auto",
-                maxWidth: 900,
-                bgcolor: "rgba(255,255,255,0.96)",
-                borderRadius: 999,
-                p: 1.2,
-                boxShadow: "0 24px 70px rgba(0,0,0,0.25)",
-                alignItems: "center",
-              }}
-            >
-              <TextField
-                fullWidth
-                placeholder="Where do you want to go?"
-                variant="standard"
-                InputProps={{
-                  disableUnderline: true,
-                  startAdornment: <PlaceIcon sx={{ mr: 1, opacity: 0.7 }} />,
-                }}
-                sx={{ px: 2 }}
-              />
-              <Button
-                variant="contained"
-                startIcon={<SearchIcon />}
+        {/* content */}
+        <Container
+          maxWidth={false}
+          className="wrap"
+          sx={{ position: "relative", height: "100%" }}
+        >
+          <Box
+            sx={{
+              pt: { xs: "130px", md: "200px" },
+              pb: { xs: 8, md: 10 },
+              display: "flex",
+              justifyContent: "center",
+              textAlign: "center",
+            }}
+          >
+            <Box sx={{ maxWidth: 980, width: "100%", px: 2 }}>
+              <Typography
                 sx={{
-                  bgcolor: "#FF6B6B",
-                  "&:hover": { bgcolor: "#ff5656" },
-                  borderRadius: 999,
-                  px: 3,
-                  py: 1.3,
-                  minWidth: 140,
-                  boxShadow: "0 10px 24px rgba(255,107,107,0.35)",
-                }}
-              >
-                Search
-              </Button>
-            </Stack>
-
-            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 4 }}>
-              <Button
-                variant="contained"
-                startIcon={<PlaceIcon />}
-                sx={{
-                  bgcolor: "#FF6B6B",
-                  "&:hover": { bgcolor: "#ff5656" },
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 2,
-                }}
-              >
-                Explore Tours
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<PhoneInTalkIcon />}
-                sx={{
-                  borderColor: "rgba(255,255,255,0.65)",
+                  fontSize: { xs: 44, md: 78 },
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.02,
                   color: "white",
-                  "&:hover": { borderColor: "white" },
-                  px: 3,
-                  py: 1.2,
-                  borderRadius: 2,
                 }}
               >
-                Contact Us
-              </Button>
-            </Stack>
+                Discover{" "}
+                <Box component="span" sx={{ color: "#FF6B6B" }}>
+                  Incredible India
+                </Box>
+              </Typography>
+
+              <Typography
+                sx={{
+                  mt: 2,
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: { xs: 14, md: 18 },
+                  lineHeight: 1.7,
+                  maxWidth: 820,
+                  mx: "auto",
+                }}
+              >
+                Experience the magic of India with our carefully curated tours
+                and authentic local experiences
+              </Typography>
+
+              {/* ✅ your separate SearchArea component */}
+              <Box
+                sx={{
+                  mt: { xs: 4, md: 5 },
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <Box sx={{ width: "100%", maxWidth: 980 }}>
+                  <SearchArea />
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </Container>
       </Box>
 
       {/* CATEGORIES */}
-      <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#F6F7FB" }}>
-        <Container maxWidth={false} className="wrap">
+      <Box
+        sx={{
+          py: { xs: 7, md: 9 },
+          bgcolor: "#F6F7FB",
+        }}
+      >
+        <Container
+          maxWidth="lg"
+          sx={{
+            px: { xs: 2, sm: 3, md: 4 }, // left/right padding (same as image feel)
+          }}
+        >
           <SectionTitle
             title="Explore by Category"
             subtitle="Choose from our diverse range of travel experiences designed to suit every traveler's passion"
           />
-          <Grid container spacing={3}>
-            {categories.map((c) => (
-              <Grid key={c.id} item xs={12} md={4}>
+
+          <Grid container spacing={{ xs: 2.5, md: 3 }}>
+            {categories?.map((c) => (
+              <Grid
+                key={c?.id || c?.slug || c?.name}
+                item
+                xs={12}
+                sm={4} // ✅ 3 cards from 600px+
+                md={4} // ✅ 3 cards from 900px+
+              >
                 <CategoryCard item={c} />
               </Grid>
             ))}
@@ -238,8 +280,8 @@ export default function Home() {
             subtitle="Handpicked destinations and experiences that showcase the best of India"
           />
           <Grid container spacing={3}>
-            {tours.map((t) => (
-              <Grid key={t.id} item xs={12} md={4}>
+            {tours?.slice(0, 6)?.map((t) => (
+              <Grid key={t?.id || t?.slug || t?.title} item xs={12} md={6}>
                 <TourCard item={t} />
               </Grid>
             ))}
@@ -254,6 +296,9 @@ export default function Home() {
                 "&:hover": { bgcolor: "#ff5656" },
                 borderRadius: 999,
                 px: 3,
+                py: 1.2,
+                boxShadow: "0 10px 24px rgba(255,107,107,0.35)",
+                fontWeight: 900,
               }}
             >
               View All Tours
@@ -265,11 +310,31 @@ export default function Home() {
       {/* WHY CHOOSE */}
       <Box sx={{ py: { xs: 8, md: 10 }, bgcolor: "#0F4C4F" }}>
         <Container maxWidth={false} className="wrap">
-          <Typography variant="h2" sx={{ color: "white", textAlign: "center", fontSize: { xs: 30, md: 42 }, fontWeight: 900 }}>
+          <Typography
+            sx={{
+              color: "white",
+              textAlign: "center",
+              fontSize: { xs: 30, md: 48 },
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.15,
+            }}
+          >
             Why Choose All India Destination?
           </Typography>
-          <Typography sx={{ color: "rgba(255,255,255,0.85)", textAlign: "center", mt: 1, maxWidth: 720, mx: "auto" }}>
-            We create unforgettable travel experiences with our expertise, passion, and commitment to excellence
+
+          <Typography
+            sx={{
+              color: "rgba(255,255,255,0.85)",
+              textAlign: "center",
+              mt: 1,
+              maxWidth: 780,
+              mx: "auto",
+              lineHeight: 1.6,
+            }}
+          >
+            We create unforgettable travel experiences with our expertise,
+            passion, and commitment to excellence
           </Typography>
 
           <Grid container spacing={3} sx={{ mt: 6 }}>
@@ -283,6 +348,7 @@ export default function Home() {
                     boxShadow: "none",
                     textAlign: "center",
                     borderRadius: 3,
+                    height: "100%",
                   }}
                 >
                   <Box
@@ -300,8 +366,14 @@ export default function Home() {
                   >
                     {x.icon}
                   </Box>
-                  <Typography sx={{ color: "white", fontWeight: 900, fontSize: 18 }}>{x.title}</Typography>
-                  <Typography sx={{ color: "rgba(255,255,255,0.78)", mt: 1 }}>{x.desc}</Typography>
+                  <Typography
+                    sx={{ color: "white", fontWeight: 900, fontSize: 18 }}
+                  >
+                    {x.title}
+                  </Typography>
+                  <Typography sx={{ color: "rgba(255,255,255,0.78)", mt: 1 }}>
+                    {x.desc}
+                  </Typography>
                 </Paper>
               </Grid>
             ))}
@@ -310,22 +382,26 @@ export default function Home() {
       </Box>
 
       {/* BLOGS */}
-      <Box sx={{ py: { xs: 7, md: 9 } }}>
+      <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#F6F7FB" }}>
         <Container maxWidth={false} className="wrap">
           <SectionTitle
             title="Travel Stories & Tips"
             subtitle="Get inspired by our latest travel stories, tips, and destination guides"
           />
           <Grid container spacing={3}>
-            {blogs.map((b) => (
-              <Grid key={b.id} item xs={12} md={4}>
+            {blogs?.slice(0, 3)?.map((b) => (
+              <Grid key={b?.id || b?.slug || b?.title} item xs={12} md={4}>
                 <BlogCard item={b} />
               </Grid>
             ))}
           </Grid>
 
           <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-            <Button variant="text" endIcon={<ArrowRightAltIcon />} sx={{ fontWeight: 900 }}>
+            <Button
+              variant="text"
+              endIcon={<ArrowRightAltIcon />}
+              sx={{ fontWeight: 900 }}
+            >
               Read More Stories
             </Button>
           </Box>
@@ -333,16 +409,40 @@ export default function Home() {
       </Box>
 
       {/* CTA */}
-      <Box sx={{ py: { xs: 8, md: 10 }, background: "linear-gradient(90deg, #ff6b6b 0%, #ff8a8a 55%, #ff6b6b 100%)" }}>
+      <Box
+        sx={{
+          py: { xs: 8, md: 10 },
+          background:
+            "linear-gradient(90deg, #ff6b6b 0%, #ff8a8a 55%, #ff6b6b 100%)",
+        }}
+      >
         <Container maxWidth={false} className="wrap">
-          <Typography variant="h2" sx={{ color: "white", textAlign: "center", fontSize: { xs: 34, md: 48 }, fontWeight: 900 }}>
+          <Typography
+            sx={{
+              color: "white",
+              textAlign: "center",
+              fontSize: { xs: 34, md: 56 },
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+            }}
+          >
             Ready for Your Next Adventure?
           </Typography>
-          <Typography sx={{ color: "rgba(255,255,255,0.9)", textAlign: "center", mt: 1 }}>
-            Let us help you create memories that will last a lifetime. Contact our travel experts today!
+
+          <Typography
+            sx={{ color: "rgba(255,255,255,0.9)", textAlign: "center", mt: 1 }}
+          >
+            Let us help you create memories that will last a lifetime. Contact
+            our travel experts today!
           </Typography>
 
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2} justifyContent="center" sx={{ mt: 5 }}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            justifyContent="center"
+            sx={{ mt: 5 }}
+          >
             <Button
               variant="contained"
               sx={{
@@ -351,6 +451,8 @@ export default function Home() {
                 "&:hover": { bgcolor: "rgba(255,255,255,0.25)" },
                 borderRadius: 999,
                 px: 3,
+                py: 1.2,
+                fontWeight: 900,
               }}
             >
               Get Free Quote
@@ -359,8 +461,12 @@ export default function Home() {
             <TextField
               placeholder="Your Phone / Email"
               sx={{
-                minWidth: { xs: "100%", md: 340 },
-                "& .MuiOutlinedInput-root": { borderRadius: 999, bgcolor: "white" },
+                minWidth: { xs: "100%", md: 380 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 999,
+                  bgcolor: "white",
+                  height: 52,
+                },
               }}
             />
           </Stack>

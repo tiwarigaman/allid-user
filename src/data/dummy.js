@@ -1,16 +1,16 @@
 export const categories = [
   { id: "c1", name: "Adventure Tours", subtitle: "Thrilling adventures for adrenaline seekers", slug: "adventure-tours",
-    image: "https://images.unsplash.com/photo-1526481280695-3c687fd643ed?q=80&w=1600&auto=format&fit=crop" },
+    image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
   { id: "c2", name: "Cultural Heritage", subtitle: "Explore India's rich cultural heritage", slug: "cultural-heritage",
     image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
   { id: "c3", name: "Wildlife Safari", subtitle: "Encounter India's magnificent wildlife", slug: "wildlife-safari",
-    image: "https://images.unsplash.com/photo-1549366021-9f761d450615?q=80&w=1600&auto=format&fit=crop" },
+    image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
   { id: "c4", name: "Beach Holidays", subtitle: "Relax on tranquil shores", slug: "beach-holidays",
-    image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?q=80&w=1600&auto=format&fit=crop" },
+    image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
   { id: "c5", name: "Mountain Treks", subtitle: "Scenic trails & Himalayan views", slug: "mountain-treks",
-    image: "https://images.unsplash.com/photo-1463694775559-eea25626346b?q=80&w=1600&auto=format&fit=crop" },
+    image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
   { id: "c6", name: "Spiritual Tours", subtitle: "Temples, ghats, and serene journeys", slug: "spiritual-tours",
-    image: "https://images.unsplash.com/photo-1629643090301-31fbc9f6a5b5?q=80&w=1600&auto=format&fit=crop" },
+    image: "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1600&auto=format&fit=crop" },
 ];
 
 export const tours = [

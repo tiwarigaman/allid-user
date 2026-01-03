@@ -3,38 +3,6 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 
-export function CategoryCard({ item }) {
-  return (
-    <Paper
-      sx={{
-        overflow: "hidden",
-        borderRadius: 3,
-        transition: "transform 200ms ease, box-shadow 200ms ease",
-        cursor: "pointer",
-        "&:hover": { transform: "translateY(-6px)", boxShadow: "0 26px 70px rgba(15,23,42,0.18)" },
-      }}
-    >
-      <Box sx={{ position: "relative", height: 210 }}>
-        <Box component="img" src={item.image} alt={item.name} loading="lazy"
-          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-        <Box sx={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.60) 100%)",
-        }} />
-        <Box sx={{ position: "absolute", left: 18, bottom: 16 }}>
-          <Typography sx={{ color: "white", fontWeight: 900, fontSize: 20 }}>
-            {item.name}
-          </Typography>
-          <Typography sx={{ color: "rgba(255,255,255,0.85)", mt: 0.3 }}>
-            {item.subtitle}
-          </Typography>
-        </Box>
-      </Box>
-    </Paper>
-  );
-}
-
 export function TourCard({ item }) {
   return (
     <Paper sx={{ overflow: "hidden", borderRadius: 3 }}>
