@@ -1,5 +1,6 @@
 // src/pages/TourDetails.jsx
 import React, { useMemo, useState, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -48,6 +49,145 @@ import {
 } from "firebase/firestore";
 
 const ACCENT = "#ff6b6b";
+
+const toursJson = [
+  {
+    slug: "golden-triangle-tour-7-days",
+    title: "07 Days – Golden Triangle Tour",
+    featuredImage:
+      "https://upload.wikimedia.org/wikipedia/commons/d/da/Taj-Mahal.jpg",
+  },
+  {
+    slug: "rajasthan-agra-varanasi-16-days",
+    title: "16 Days – Best of Rajasthan with Agra and Varanasi",
+    featuredImage:
+      "https://upload.wikimedia.org/wikipedia/commons/6/6e/Amber_Fort%2C_Jaipur.jpg",
+  },
+];
+
+export function RelevantTourCard({
+  tours = toursJson, // ✅ same
+  title = "First Timer Tours Packages",
+  moreBtnText = "More Tour Packages",
+  moreBtnTo = "/tours",
+}) {
+  const list = (tours || []).slice(0, 2); // ✅ same
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        position: "static", // ✅ IMPORTANT: remove sticky to stop overlapping
+        borderRadius: 3, // ✅ like your reference card
+        border: "1px solid rgba(15,23,42,0.10)",
+        bgcolor: "#fff",
+        overflow: "hidden",
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          bgcolor: "#f17171",
+          py: 1.3,
+          px: 2,
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          sx={{
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 15,
+            lineHeight: 1.2,
+          }}
+        >
+          {title}
+        </Typography>
+      </Box>
+
+      {/* Items */}
+      <Stack divider={<Divider sx={{ borderColor: "rgba(15,23,42,0.10)" }} />}>
+        {list.map((item) => (
+          <Box
+            key={item.slug}
+            component={RouterLink}
+            to={`/tours/${item.slug}`} // ✅ same route behavior
+            sx={{
+              display: "flex",
+              gap: 1.5,
+              p: 1.6,
+              textDecoration: "none",
+              color: "inherit",
+              alignItems: "center",
+              "&:hover .rt-title": { textDecoration: "underline" },
+            }}
+          >
+            {/* Image */}
+            <Box
+              sx={{
+                width: 74,
+                height: 54,
+                borderRadius: 1,
+                border: "1px solid rgba(15,23,42,0.15)",
+                bgcolor: "#f1f5f9",
+                overflow: "hidden",
+                flexShrink: 0,
+              }}
+            >
+              <Box
+                component="img"
+                src={item.featuredImage}
+                alt={item.title}
+                loading="lazy"
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </Box>
+
+            {/* Title */}
+            <Typography
+              className="rt-title"
+              sx={{
+                fontSize: 14,
+                lineHeight: 1.15,
+                fontWeight: 500,
+                color: "#0f172a",
+              }}
+            >
+              {item.title}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+
+      {/* Bottom Button */}
+      <Button
+        component={RouterLink}
+        to={moreBtnTo}
+        fullWidth
+        disableElevation
+        sx={{
+          borderRadius: 0,
+          bgcolor: "#ebaa48ff",
+          color: "#fff",
+          fontWeight: 600,
+          py: 1.3,
+          fontSize: 14,
+          textTransform: "none",
+          "&:hover": { bgcolor: "#e2a645ff" },
+          "&:hover": { color: "#fff" },
+        }}
+      >
+        {moreBtnText}
+      </Button>
+    </Paper>
+  );
+}
+
 
 function Pill({ icon, text }) {
   return (
@@ -155,13 +295,17 @@ function BookTourModal({ open, onClose, tourTitle }) {
               onChange={onChange("people")}
               fullWidth
             >
-              {["1 Person", "2 People", "3 People", "4 People", "5+ People"].map(
-                (opt) => (
-                  <MenuItem key={opt} value={opt}>
-                    {opt}
-                  </MenuItem>
-                )
-              )}
+              {[
+                "1 Person",
+                "2 People",
+                "3 People",
+                "4 People",
+                "5+ People",
+              ].map((opt) => (
+                <MenuItem key={opt} value={opt}>
+                  {opt}
+                </MenuItem>
+              ))}
             </TextField>
 
             <TextField
@@ -274,20 +418,22 @@ export default function TourDetails() {
 
   // 🔹 Gallery (JSON fields + Firestore fields)
   const gallery = tour
-    ? (Array.isArray(tour.galleryImageUrls) && tour.galleryImageUrls.length
-        ? tour.galleryImageUrls
-        : Array.isArray(tour.gallery) && tour.gallery.length
-        ? tour.gallery
-        : Array.isArray(tour.images) && tour.images.length
-        ? tour.images
-        : Array.isArray(tour.imageUrls) && tour.imageUrls.length
-        ? tour.imageUrls
-        : tour.featureImageUrl
-        ? [tour.featureImageUrl]
-        : tour.image
-        ? [tour.image]
-        : [])
+    ? Array.isArray(tour.galleryImageUrls) && tour.galleryImageUrls.length
+      ? tour.galleryImageUrls
+      : Array.isArray(tour.gallery) && tour.gallery.length
+      ? tour.gallery
+      : Array.isArray(tour.images) && tour.images.length
+      ? tour.images
+      : Array.isArray(tour.imageUrls) && tour.imageUrls.length
+      ? tour.imageUrls
+      : tour.featureImageUrl
+      ? [tour.featureImageUrl]
+      : tour.image
+      ? [tour.image]
+      : []
     : [];
+
+  // console.log(gallery, "gallery")
 
   const iframeSrc = useMemo(() => {
     const q = encodeURIComponent(
@@ -350,7 +496,9 @@ export default function TourDetails() {
       icon: <GroupOutlinedIcon sx={{ fontSize: 16 }} />,
       text:
         tour.people ||
-        (tour.maxGroupSize ? `Max ${tour.maxGroupSize} People` : "Max 20 People"),
+        (tour.maxGroupSize
+          ? `Max ${tour.maxGroupSize} People`
+          : "Max 20 People"),
     },
     {
       icon: <ChildCareOutlinedIcon sx={{ fontSize: 16 }} />,
@@ -372,6 +520,30 @@ export default function TourDetails() {
           "Transportation included",
           "24/7 support",
         ];
+
+  const includes =
+    tour.included && tour.included.length
+      ? tour.included
+      : [
+          "Professional tour guide",
+          "Comfortable accommodation",
+          "All meals included",
+          "Transportation included",
+          "24/7 support",
+        ];
+
+  const excludes =
+    tour.excluded && tour.excluded.length
+      ? tour.excluded
+      : [
+          "Professional tour guide",
+          "Comfortable accommodation",
+          "All meals included",
+          "Transportation included",
+          "24/7 support",
+        ];
+
+  console.log(includes, "Includes");
 
   const itinerary = tour.itinerary || [];
 
@@ -610,7 +782,7 @@ export default function TourDetails() {
               }}
             >
               <Typography sx={{ fontWeight: 600, color: "#0f172a", mb: 1.5 }}>
-                Pickup & Drop Points
+                Included
               </Typography>
 
               <Box
@@ -630,15 +802,31 @@ export default function TourDetails() {
                   }}
                 >
                   <Stack direction="row" spacing={1.2} alignItems="center">
-                    <LocalTaxiOutlinedIcon sx={{ color: "#16a34a" }} />
+                    {/* <LocalTaxiOutlinedIcon sx={{ color: "#16a34a" }} /> */}
                     <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                      Pickup Point
+                      Included
                     </Typography>
                   </Stack>
                   <Typography
                     sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
                   >
-                    {tour.pickup || "—"}
+                    {includes.map((h, idx) => (
+                      <Stack
+                        key={h + idx}
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                      >
+                        <CheckCircleOutlineIcon
+                          sx={{ color: "#16a34a", fontSize: 18 }}
+                        />
+                        <Typography
+                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                        >
+                          {h}
+                        </Typography>
+                      </Stack>
+                    ))}
                   </Typography>
                 </Paper>
 
@@ -652,15 +840,30 @@ export default function TourDetails() {
                   }}
                 >
                   <Stack direction="row" spacing={1.2} alignItems="center">
-                    <PinDropOutlinedIcon sx={{ color: ACCENT }} />
+                    {/* <PinDropOutlinedIcon sx={{ color: ACCENT }} /> */}
                     <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                      Drop Point
+                      Excluded
                     </Typography>
                   </Stack>
                   <Typography
                     sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
                   >
-                    {tour.drop || "—"}
+                    {excludes.map((h, idx) => (
+                      <Stack
+                        key={h + idx}
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
+                      >
+                        <CloseIcon sx={{ color: "#d51c1cff", fontSize: 18 }} />
+                        <Typography
+                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                        >
+                          {h}
+                        </Typography>
+                      </Stack>
+                    ))}
+                    {/* {tour.excludes || "—"} */}
                   </Typography>
                 </Paper>
               </Box>
@@ -704,105 +907,126 @@ export default function TourDetails() {
           </Box>
 
           {/* RIGHT */}
-          <Box>
-            <Paper
-              elevation={0}
+          <Stack
+            spacing={2} // ✅ separation between both sections
+            sx={{ alignSelf: "flex-start" }}
+          >
+            {/* ✅ ONLY THIS BOX IS STICKY */}
+            <Box
               sx={{
-                position: { xs: "static", md: "sticky" },
+                position: { xs: "static", md: "" },
                 top: 92,
-                borderRadius: 3,
-                border: "1px solid rgba(15,23,42,0.08)",
-                bgcolor: "#fff",
-                overflow: "hidden",
+                zIndex: 2, // ✅ prevents weird overlay under/over content
               }}
             >
-              <Box sx={{ p: 2.5 }}>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    color: ACCENT,
-                    textAlign: "center",
-                    mb: 0.5,
-                  }}
-                >
-                  {tour.pricingText || "Contact for Pricing"}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "rgba(15,23,42,0.65)",
-                    fontSize: 12.5,
-                    textAlign: "center",
-                    mb: 2,
-                  }}
-                >
-                  Get personalized quote
-                </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  bgcolor: "#fff",
+                  overflow: "hidden",
+                }}
+              >
+                <Box sx={{ p: 2.5 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      color: ACCENT,
+                      textAlign: "center",
+                      mb: 0.5,
+                    }}
+                  >
+                    {tour.pricingText || "Contact for Pricing"}
+                  </Typography>
 
-                <Button
-                  fullWidth
-                  variant="contained"
-                  disableElevation
-                  sx={{
-                    bgcolor: ACCENT,
-                    borderRadius: 2,
-                    py: 1.1,
-                    fontWeight: 600,
-                    textTransform: "none",
-                    "&:hover": { bgcolor: "#ff5252" },
-                  }}
-                  onClick={() => setBookOpen(true)}
-                >
-                  Book Now
-                </Button>
+                  <Typography
+                    sx={{
+                      color: "rgba(15,23,42,0.65)",
+                      fontSize: 12.5,
+                      textAlign: "center",
+                      mb: 2,
+                    }}
+                  >
+                    Get personalized quote
+                  </Typography>
 
-                <Button
-                  fullWidth
-                  variant="text"
-                  sx={{
-                    mt: 1.2,
-                    color: "#0f172a",
-                    fontWeight: 600,
-                    textTransform: "none",
-                  }}
-                  onClick={() =>
-                    console.log("Enquire:", tour.slug || tour.id)
-                  }
-                >
-                  Enquire Now
-                </Button>
-              </Box>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    disableElevation
+                    sx={{
+                      bgcolor: ACCENT,
+                      borderRadius: 2,
+                      py: 1.1,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      "&:hover": { bgcolor: "#ff5252" },
+                    }}
+                    onClick={() => setBookOpen(true)}
+                  >
+                    Book Now
+                  </Button>
 
-              <Divider sx={{ borderColor: "rgba(15,23,42,0.08)" }} />
+                  <Button
+                    fullWidth
+                    variant="text"
+                    sx={{
+                      mt: 1.2,
+                      color: "#0f172a",
+                      fontWeight: 600,
+                      textTransform: "none",
+                    }}
+                    onClick={() =>
+                      console.log("Enquire:", tour.slug || tour.id)
+                    }
+                  >
+                    Enquire Now
+                  </Button>
+                </Box>
 
-              <Box sx={{ p: 2.5 }}>
-                <Typography
-                  sx={{ fontWeight: 700, color: "#0f172a", mb: 1.25 }}
-                >
-                  Tour Highlights
-                </Typography>
+                <Divider sx={{ borderColor: "rgba(15,23,42,0.08)" }} />
 
-                <Stack spacing={1.1}>
-                  {highlights.map((h, idx) => (
-                    <Stack
-                      key={h + idx}
-                      direction="row"
-                      spacing={1}
-                      alignItems="center"
-                    >
-                      <CheckCircleOutlineIcon
-                        sx={{ color: "#16a34a", fontSize: 18 }}
-                      />
-                      <Typography
-                        sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                <Box sx={{ p: 2.5 }}>
+                  <Typography
+                    sx={{ fontWeight: 700, color: "#0f172a", mb: 1.25 }}
+                  >
+                    Tour Highlights
+                  </Typography>
+
+                  <Stack spacing={1.1}>
+                    {highlights.map((h, idx) => (
+                      <Stack
+                        key={h + idx}
+                        direction="row"
+                        spacing={1}
+                        alignItems="center"
                       >
-                        {h}
-                      </Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-              </Box>
-            </Paper>
-          </Box>
+                        <CheckCircleOutlineIcon
+                          sx={{ color: "#16a34a", fontSize: 18 }}
+                        />
+                        <Typography
+                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                        >
+                          {h}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Box>
+              </Paper>
+            </Box>
+
+            {/* ✅ NORMAL FLOW (NOT STICKY) */}
+            <Box sx={{ position: "sticky" }}>
+              <RelevantTourCard
+                tours={toursJson}
+                title="First Timer Tours Packages"
+                moreBtnText="More Tour Packages"
+                moreBtnTo="/tours"
+              />
+            </Box>
+          </Stack>
         </Box>
       </Container>
 

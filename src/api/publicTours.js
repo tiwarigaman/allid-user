@@ -41,6 +41,8 @@ export async function getPublicTours() {
   const snap = await getDocs(q);
   const list = snap.docs.map(mapTourDoc);
 
+  console.log(list, "publish Data")
+
   // newest first, safe even if createdAt missing
   list.sort((a, b) => {
     const ta =
