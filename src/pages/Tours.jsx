@@ -1,5 +1,5 @@
 // src/pages/Tours.jsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -23,25 +23,21 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
-// ✅ your existing header/footer components (keep your paths)
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-// ✅ Use ONE banner image from assets (update path/file-name as per your project)
 import toursBanner from "../assets/sub-banner.webp";
+
+// 🔹 public APIs (read-only)
+import { getPublicTours } from "../api/publicTours";
+import { getPublicTourCategories } from "../api/publicCategories";
+
+// ✅ for navigation to TourDetails
+import { useNavigate } from "react-router-dom";
 
 const ACCENT = "#ff6b6b";
 
-const categoriesList = [
-  "All Categories",
-  "Cultural Heritage",
-  "Beach Holidays",
-  "Mountain Treks",
-  "Wildlife Safari",
-  "Spiritual Tours",
-  "Adventure Tours",
-];
-
+// keep sort list same
 const sortList = [
   "Most Popular",
   "Newest",
@@ -50,89 +46,27 @@ const sortList = [
   "Duration: High to Low",
 ];
 
-// ✅ Replace this with your real tours data when ready
-const dummyTours = [
-  {
-    id: "goa-beach-paradise",
-    category: "Beach Holidays",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=70",
-    location: "North & South Goa",
-    title: "Goa Beach Paradise",
-    desc: "Relax on pristine beaches, enjoy water sports, explore Portuguese heritage, and experience vibrant nightlife...",
-    duration: "4 Days 3 Nights",
-    people: "Max 25",
-    season: "November to February",
-  },
-  {
-    id: "golden-triangle-adventure",
-    category: "Cultural Heritage",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=70",
-    location: "Delhi, Agra, Jaipur",
-    title: "Golden Triangle Adventure",
-    desc: "Experience the magnificent Golden Triangle circuit covering Delhi's historical monuments, Agra's Taj Mahal, and Jaipur's royal palaces...",
-    duration: "6 Days 5 Nights",
-    people: "Max 15",
-    season: "October to March",
-  },
-  {
-    id: "himalayan-trek-adventure",
-    category: "Mountain Treks",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1558980394-0c1b2b8f9b4f?auto=format&fit=crop&w=1200&q=70",
-    location: "Manali, Rohtang Pass",
-    title: "Himalayan Trek Adventure",
-    desc: "Challenge yourself with this thrilling Himalayan trek through pristine valleys, snow-capped peaks, and breathtaking landscapes...",
-    duration: "8 Days 7 Nights",
-    people: "Max 10",
-    season: "May to September",
-  },
-  {
-    id: "kerala-backwaters-cruise",
-    category: "Beach Holidays",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=70",
-    location: "Alleppey, Kumarakom",
-    title: "Kerala Backwaters Cruise",
-    desc: "Sail through the serene backwaters of Kerala on a traditional houseboat. Experience the tranquil beauty of palm-lined canals...",
-    duration: "4 Days 3 Nights",
-    people: "Max 12",
-    season: "November to February",
-  },
-  {
-    id: "rajasthan-desert-safari",
-    category: "Adventure Tours",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1450071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=70",
-    location: "Jaisalmer, Jodhpur",
-    title: "Rajasthan Desert Safari",
-    desc: "Experience the magic of the Thar Desert with camel safaris, sand dunes, and nights under the starlit sky...",
-    duration: "5 Days 4 Nights",
-    people: "Max 20",
-    season: "October to March",
-  },
-  {
-    id: "spiritual-varanasi-journey",
-    category: "Spiritual Tours",
-    tagRight: "Contact for Pricing",
-    image:
-      "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=70",
-    location: "Varanasi, Sarnath",
-    title: "Spiritual Varanasi Journey",
-    desc: "Experience the spiritual heart of India in the ancient city of Varanasi. Witness sacred rituals on the ghats of the Ganges...",
-    duration: "3 Days 2 Nights",
-    people: "Max 15",
-    season: "October to March",
-  },
-];
-
 function TourCard({ tour }) {
+  const navigate = useNavigate();
+
+  const image =
+    tour.image ||
+    tour.featureImageUrl ||
+    (Array.isArray(tour.imageUrls) && tour.imageUrls[0]) ||
+    "https://images.unsplash.com/photo-1526779259212-939e64788e3c?auto=format&fit=crop&w=1200&q=70";
+
+  const desc = tour.desc || tour.description || "";
+  const peopleText =
+    tour.people ||
+    (tour.maxGroupSize ? `Max ${tour.maxGroupSize}` : "—");
+  const categoryLabel = tour.category || tour.categoryName || "Category";
+
+  const handleViewDetails = () => {
+    const slugOrId = tour.slug || tour.id;
+    if (!slugOrId) return;
+    navigate(`/tour/${slugOrId}`);
+  };
+
   return (
     <Card
       elevation={0}
@@ -148,14 +82,14 @@ function TourCard({ tour }) {
         <Box
           sx={{
             height: 220,
-            backgroundImage: `url(${tour.image})`,
+            backgroundImage: `url(${image})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         />
 
         <Chip
-          label={tour.category || "Category"}
+          label={categoryLabel}
           size="small"
           sx={{
             position: "absolute",
@@ -225,7 +159,7 @@ function TourCard({ tour }) {
             overflow: "hidden",
           }}
         >
-          {tour.desc || ""}
+          {desc}
         </Typography>
 
         <Box
@@ -238,26 +172,58 @@ function TourCard({ tour }) {
             fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+          <Box
+            sx={{ display: "flex", alignItems: "center", gap: 0.8 }}
+          >
             <AccessTimeOutlinedIcon sx={{ fontSize: 18 }} />
-            <Typography variant="body2" sx={{ fontWeight: 500, color: "#0f172a" }}>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, color: "#0f172a" }}
+            >
               {tour.duration || "—"}
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8, ml: "auto" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.8,
+              ml: "auto",
+            }}
+          >
             <GroupOutlinedIcon sx={{ fontSize: 18 }} />
-            <Typography variant="body2" sx={{ fontWeight: 500, color: "#0f172a" }}>
-              {tour.people || "—"}
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 500, color: "#0f172a" }}
+            >
+              {peopleText}
             </Typography>
           </Box>
         </Box>
 
-        <Divider sx={{ my: 1.75, borderColor: "rgba(15, 23, 42, 0.08)" }} />
+        <Divider
+          sx={{
+            my: 1.75,
+            borderColor: "rgba(15, 23, 42, 0.08)",
+          }}
+        />
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          <Typography variant="body2" sx={{ color: "rgba(15, 23, 42, 0.70)" }}>
-            <Box component="span" sx={{ fontWeight: 500, color: "#0f172a" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ color: "rgba(15, 23, 42, 0.70)" }}
+          >
+            <Box
+              component="span"
+              sx={{ fontWeight: 500, color: "#0f172a" }}
+            >
               Season:
             </Box>{" "}
             {tour.season || "—"}
@@ -275,7 +241,7 @@ function TourCard({ tour }) {
               px: 2,
               "&:hover": { bgcolor: "#ff5252" },
             }}
-            onClick={() => console.log("View details:", tour.id)}
+            onClick={handleViewDetails}
           >
             View Details
           </Button>
@@ -286,49 +252,105 @@ function TourCard({ tour }) {
 }
 
 export default function Tours() {
+  // 🔹 data from Firestore
+  const [tours, setTours] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 UI controls
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All Categories");
+  const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("Most Popular");
 
-  const filtered = useMemo(() => {
-    let list = [...dummyTours];
+  // ---- load tours + categories once ----
+  useEffect(() => {
+    let active = true;
 
-    if (category !== "All Categories") {
-      list = list.filter((t) => t.category === category);
+    async function loadData() {
+      try {
+        const [cats, t] = await Promise.all([
+          getPublicTourCategories(),
+          getPublicTours(),
+        ]);
+
+        if (!active) return;
+        setCategories(cats);
+        setTours(t);
+      } catch (err) {
+        console.error("Error loading public tours page:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
     }
 
+    loadData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // build category options (All + Firestore categories)
+  const categoryOptions = useMemo(() => {
+    const base = [
+      { label: "All Categories", value: "all" },
+      ...(categories || []).map((c) => ({
+        label: c.name || "Category",
+        value: c.id,
+      })),
+    ];
+    return base;
+  }, [categories]);
+
+  const filtered = useMemo(() => {
+    let list = [...tours];
+
+    // filter by categoryId
+    if (category !== "all") {
+      list = list.filter((t) => t.categoryId === category);
+    }
+
+    // search by title/location/categoryName
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          t.location.toLowerCase().includes(q) ||
-          t.category.toLowerCase().includes(q)
-      );
+      list = list.filter((t) => {
+        const title = (t.title || "").toLowerCase();
+        const loc = (t.location || "").toLowerCase();
+        const catName = (t.categoryName || "").toLowerCase();
+        return (
+          title.includes(q) || loc.includes(q) || catName.includes(q)
+        );
+      });
     }
 
+    // sort
     if (sort === "Newest") list = [...list].reverse();
     if (sort === "Alphabetical")
-      list = [...list].sort((a, b) => a.title.localeCompare(b.title));
+      list = [...list].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
 
     const parseDays = (str) => {
-      const m = String(str).match(/(\d+)\s*Days/i);
+      const m = String(str || "").match(/(\d+)\s*Days?/i);
       return m ? Number(m[1]) : 999;
     };
 
     if (sort === "Duration: Low to High")
-      list = [...list].sort((a, b) => parseDays(a.duration) - parseDays(b.duration));
+      list = [...list].sort(
+        (a, b) => parseDays(a.duration) - parseDays(b.duration)
+      );
     if (sort === "Duration: High to Low")
-      list = [...list].sort((a, b) => parseDays(b.duration) - parseDays(a.duration));
+      list = [...list].sort(
+        (a, b) => parseDays(b.duration) - parseDays(a.duration)
+      );
 
     return list;
-  }, [search, category, sort]);
+  }, [search, category, sort, tours]);
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-      {/* ✅ Hero (single banner image) */}
+      {/* Hero */}
       <Box
         sx={{
           position: "relative",
@@ -383,13 +405,14 @@ export default function Tours() {
                 mx: "auto",
               }}
             >
-              Discover amazing destinations across India with our curated tour packages
+              Discover amazing destinations across India with our
+              curated tour packages
             </Typography>
           </Box>
         </Container>
       </Box>
 
-      {/* ✅ Search strip BELOW banner (NOT overlapping) */}
+      {/* Search strip */}
       <Box
         sx={{
           bgcolor: "#fff",
@@ -403,7 +426,10 @@ export default function Tours() {
               display: "grid",
               alignItems: "center",
               gap: 2,
-              gridTemplateColumns: { xs: "1fr", md: "1.8fr 0.55fr 0.55fr" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                md: "1.8fr 0.55fr 0.55fr",
+              },
             }}
           >
             <TextField
@@ -414,17 +440,13 @@ export default function Tours() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchRoundedIcon sx={{ color: "rgba(15, 23, 42, 0.55)" }} />
+                    <SearchRoundedIcon
+                      sx={{ color: "rgba(15, 23, 42, 0.55)" }}
+                    />
                   </InputAdornment>
                 ),
                 endAdornment: (
-                  <InputAdornment
-                    position="end"
-                    sx={{
-                      // ✅ FIX: remove the extra space on the right of the button
-                      mr: 0,
-                    }}
-                  >
+                  <InputAdornment position="end" sx={{ mr: 0 }}>
                     <IconButton
                       sx={{
                         bgcolor: ACCENT,
@@ -446,11 +468,7 @@ export default function Tours() {
                   height: 45,
                   borderRadius: 2.25,
                   bgcolor: "#fff",
-
-                  // ✅ FIX: MUI adds right padding when endAdornment exists
                   pr: 0,
-
-                  // ✅ ensure adornment has no extra gap
                   "& .MuiInputAdornment-positionEnd": {
                     marginRight: 0,
                   },
@@ -469,9 +487,9 @@ export default function Tours() {
                   bgcolor: "#fff",
                 }}
               >
-                {categoriesList.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
+                {categoryOptions.map((c) => (
+                  <MenuItem key={c.value} value={c.value}>
+                    {c.label}
                   </MenuItem>
                 ))}
               </Select>
@@ -509,10 +527,9 @@ export default function Tours() {
             fontSize: { xs: 18, md: 22 },
           }}
         >
-          {filtered.length} Tours Found
+          {loading ? "Loading tours..." : `${filtered.length} Tours Found`}
         </Typography>
 
-        {/* ✅ 3 cards per row on desktop */}
         <Box
           sx={{
             display: "grid",
@@ -524,9 +541,10 @@ export default function Tours() {
             },
           }}
         >
-          {filtered.map((tour) => (
-            <TourCard key={tour.id} tour={tour} />
-          ))}
+          {!loading &&
+            filtered.map((tour) => (
+              <TourCard key={tour.id} tour={tour} />
+            ))}
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>

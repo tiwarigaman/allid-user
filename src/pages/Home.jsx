@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+// src/pages/Home.jsx
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -22,10 +23,15 @@ import Footer from "../components/Footer";
 // ✅ Your separate search component
 import SearchArea from "../components/ToursSearchBar.jsx";
 
-import { categories, tours, blogs } from "../data/dummy";
+// ✅ Blogs still from dummy for now
+import { blogs } from "../data/dummy";
 import CategoryCard from "../components/CategoryCard.jsx";
 import TourCard from "../components/TourCard.jsx";
 import BlogCard from "../components/BlogCard.jsx";
+
+// ✅ NEW: public Firestore API for home page
+import { getPublicTourCategories } from "../api/publicCategories";
+import { getFeaturedTours } from "../api/publicTours";
 
 // ✅ Use your asset background (single image)
 import heroBg from "../assets/banner-grid.webp";
@@ -64,19 +70,55 @@ const SectionTitle = ({ title, subtitle }) => {
 };
 
 export default function Home() {
-  // ✅ If your SearchArea expects props (q/setQ/cat/setCat/sort/setSort)
-  // this prevents runtime errors.
+  // search state (already used by SearchArea)
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
   const [sort, setSort] = useState("popular");
 
+  // 🔹 NEW: data coming from Firestore via public APIs
+  const [homeCategories, setHomeCategories] = useState([]);
+  const [featuredTours, setFeaturedToursState] = useState([]);
+  const [loadingHome, setLoadingHome] = useState(true);
+
+  // 🔹 Load categories + featured tours once on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadHomeData() {
+      try {
+        const [cats, feats] = await Promise.all([
+          getPublicTourCategories(),
+          getFeaturedTours(6), // only 6 for homepage
+        ]);
+
+        if (!isMounted) return;
+
+        setHomeCategories(cats);
+        setFeaturedToursState(feats);
+      } catch (err) {
+        console.error("Error loading home data:", err);
+      } finally {
+        if (isMounted) {
+          setLoadingHome(false);
+        }
+      }
+    }
+
+    loadHomeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 🔹 For search dropdown – built from Firestore categories now
   const categoryOptions = useMemo(() => {
-    const opts = (categories || []).map((c) => ({
+    const opts = (homeCategories || []).map((c) => ({
       label: c?.name || "Category",
       value: c?.slug || (c?.name || "").toLowerCase().replace(/\s+/g, "-"),
     }));
     return [{ label: "All Categories", value: "" }, ...opts];
-  }, []);
+  }, [homeCategories]);
 
   const why = [
     {
@@ -101,7 +143,7 @@ export default function Home() {
     },
   ];
 
-  // ✅ Shared container sizing (fixes “too close to screen”)
+  // shared container sizing
   const sectionContainerSx = {
     maxWidth: 1240,
     mx: "auto",
@@ -121,7 +163,7 @@ export default function Home() {
           borderBottom: "1px solid rgba(15, 23, 42, 0.06)",
         }}
       >
-        {/* ✅ single background image */}
+        {/* background image */}
         <Box
           sx={{
             position: "absolute",
@@ -205,7 +247,7 @@ export default function Home() {
                     categoryOptions={categoryOptions}
                   />
 
-                  {/* ✅ Buttons under search (like your screenshot) */}
+                  {/* Buttons under search */}
                   <Stack
                     direction={{ xs: "column", sm: "row" }}
                     spacing={2}
@@ -264,7 +306,6 @@ export default function Home() {
             subtitle="Choose from our diverse range of travel experiences designed to suit every traveler's passion"
           />
 
-          {/* ✅ grid layout that stays centered + 3 columns on desktop */}
           <Box
             sx={{
               display: "grid",
@@ -277,7 +318,7 @@ export default function Home() {
               alignItems: "stretch",
             }}
           >
-            {(categories || []).map((c) => (
+            {(homeCategories || []).map((c) => (
               <Box key={c?.id || c?.slug || c?.name} sx={{ minWidth: 0 }}>
                 <CategoryCard item={c} />
               </Box>
@@ -286,7 +327,7 @@ export default function Home() {
         </Container>
       </Box>
 
-      {/* FEATURED TOURS */}
+      {/* FEATURED TOURS (from Firestore, only 3 featured & published) */}
       <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "white" }}>
         <Container maxWidth={false} sx={sectionContainerSx}>
           <SectionTitle
@@ -294,7 +335,6 @@ export default function Home() {
             subtitle="Handpicked destinations and experiences that showcase the best of India"
           />
 
-          {/* ✅ 1 mobile, 2 tablet, 3 desktop ALWAYS */}
           <Box
             sx={{
               display: "grid",
@@ -307,7 +347,7 @@ export default function Home() {
               alignItems: "stretch",
             }}
           >
-            {(tours || []).slice(0, 6).map((t) => (
+            {(featuredTours || []).map((t) => (
               <Box key={t?.id || t?.slug || t?.title} sx={{ minWidth: 0 }}>
                 <TourCard item={t} />
               </Box>
@@ -344,7 +384,7 @@ export default function Home() {
           overflow: "hidden",
         }}
       >
-        {/* circles */}
+        {/* decoration circles */}
         <Box
           sx={{
             position: "absolute",
@@ -420,7 +460,7 @@ export default function Home() {
             container
             spacing={{ xs: 5, md: 3 }}
             sx={{ mt: { xs: 6, md: 8 } }}
-            justifyContent="center" // ✅ THIS IS THE KEY FIX
+            justifyContent="center"
           >
             {why.map((x) => (
               <Grid key={x.title} item xs={12} sm={6} md={3}>
@@ -467,7 +507,7 @@ export default function Home() {
         </Container>
       </Box>
 
-      {/* BLOGS */}
+      {/* BLOGS (still dummy for now) */}
       <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#F6F7FB" }}>
         <Container maxWidth={false} sx={sectionContainerSx}>
           <SectionTitle
@@ -475,7 +515,6 @@ export default function Home() {
             subtitle="Get inspired by our latest travel stories, tips, and destination guides"
           />
 
-          {/* ✅ FORCE 3 cards on desktop (prevents “one giant card” issue) */}
           <Box
             sx={{
               display: "grid",
@@ -549,7 +588,6 @@ export default function Home() {
             justifyContent="center"
             sx={{ mt: 5 }}
           >
-
             <TextField
               placeholder="Your Phone / Email"
               sx={{
@@ -561,7 +599,7 @@ export default function Home() {
                 },
               }}
             />
-            
+
             <Button
               variant="contained"
               sx={{
