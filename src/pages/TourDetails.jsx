@@ -1,7 +1,6 @@
 // src/pages/TourDetails.jsx
 import React, { useMemo, useState, useEffect } from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -28,8 +27,6 @@ import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import ChildCareOutlinedIcon from "@mui/icons-material/ChildCareOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import LocalTaxiOutlinedIcon from "@mui/icons-material/LocalTaxiOutlined";
-import PinDropOutlinedIcon from "@mui/icons-material/PinDropOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 
@@ -37,48 +34,35 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import DetailsBanner from "../assets/tourdetail-banner.webp";
 
-// 🔹 Firestore imports
-import { db } from "../firebase";
+// 🔹 Public API helpers
 import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+  getPublicTourBySlugOrId,
+  getPublicToursByCategoryPage,
+} from "../api/publicTours";
 
 const ACCENT = "#ff6b6b";
 
-const toursJson = [
-  {
-    slug: "golden-triangle-tour-7-days",
-    title: "07 Days – Golden Triangle Tour",
-    featuredImage:
-      "https://upload.wikimedia.org/wikipedia/commons/d/da/Taj-Mahal.jpg",
-  },
-  {
-    slug: "rajasthan-agra-varanasi-16-days",
-    title: "16 Days – Best of Rajasthan with Agra and Varanasi",
-    featuredImage:
-      "https://upload.wikimedia.org/wikipedia/commons/6/6e/Amber_Fort%2C_Jaipur.jpg",
-  },
-];
-
+/* =========================
+   RelevantTourCard (no dummy data)
+========================= */
 export function RelevantTourCard({
-  tours = toursJson, // ✅ same
+  tours = [],
   title = "First Timer Tours Packages",
   moreBtnText = "More Tour Packages",
   moreBtnTo = "/tours",
 }) {
-  const list = (tours || []).slice(0, 2); // ✅ same
+  const list = (tours || []).slice(0, 6);
+
+  if (!list.length) {
+    return null;
+  }
 
   return (
     <Paper
       elevation={0}
       sx={{
-        position: "static", // ✅ IMPORTANT: remove sticky to stop overlapping
-        borderRadius: 3, // ✅ like your reference card
+        position: "static",
+        borderRadius: 3,
         border: "1px solid rgba(15,23,42,0.10)",
         bgcolor: "#fff",
         overflow: "hidden",
@@ -107,61 +91,69 @@ export function RelevantTourCard({
 
       {/* Items */}
       <Stack divider={<Divider sx={{ borderColor: "rgba(15,23,42,0.10)" }} />}>
-        {list.map((item) => (
-          <Box
-            key={item.slug}
-            component={RouterLink}
-            to={`/tours/${item.slug}`} // ✅ same route behavior
-            sx={{
-              display: "flex",
-              gap: 1.5,
-              p: 1.6,
-              textDecoration: "none",
-              color: "inherit",
-              alignItems: "center",
-              "&:hover .rt-title": { textDecoration: "underline" },
-            }}
-          >
-            {/* Image */}
+        {list.map((item) => {
+          const slugOrId = item.slug || item.id;
+          return (
             <Box
+              key={slugOrId}
+              component={RouterLink}
+              to={`/tour/${slugOrId}`}
               sx={{
-                width: 74,
-                height: 54,
-                borderRadius: 1,
-                border: "1px solid rgba(15,23,42,0.15)",
-                bgcolor: "#f1f5f9",
-                overflow: "hidden",
-                flexShrink: 0,
+                display: "flex",
+                gap: 1.5,
+                p: 1.6,
+                textDecoration: "none",
+                color: "inherit",
+                alignItems: "center",
+                "&:hover .rt-title": { textDecoration: "underline" },
               }}
             >
+              {/* Image */}
               <Box
-                component="img"
-                src={item.featuredImage}
-                alt={item.title}
-                loading="lazy"
                 sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
+                  width: 74,
+                  height: 54,
+                  borderRadius: 1,
+                  border: "1px solid rgba(15,23,42,0.15)",
+                  bgcolor: "#f1f5f9",
+                  overflow: "hidden",
+                  flexShrink: 0,
                 }}
-              />
-            </Box>
+              >
+                <Box
+                  component="img"
+                  src={
+                    item.featureImageUrl ||
+                    item.image ||
+                    (Array.isArray(item.imageUrls) && item.imageUrls[0]) ||
+                    "https://images.unsplash.com/photo-1526779259212-939e64788e3c?auto=format&fit=crop&w=800&q=70"
+                  }
+                  alt={item.title}
+                  loading="lazy"
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </Box>
 
-            {/* Title */}
-            <Typography
-              className="rt-title"
-              sx={{
-                fontSize: 14,
-                lineHeight: 1.15,
-                fontWeight: 500,
-                color: "#0f172a",
-              }}
-            >
-              {item.title}
-            </Typography>
-          </Box>
-        ))}
+              {/* Title */}
+              <Typography
+                className="rt-title"
+                sx={{
+                  fontSize: 14,
+                  lineHeight: 1.15,
+                  fontWeight: 500,
+                  color: "#0f172a",
+                }}
+              >
+                {item.title}
+              </Typography>
+            </Box>
+          );
+        })}
       </Stack>
 
       {/* Bottom Button */}
@@ -178,8 +170,7 @@ export function RelevantTourCard({
           py: 1.3,
           fontSize: 14,
           textTransform: "none",
-          "&:hover": { bgcolor: "#e2a645ff" },
-          "&:hover": { color: "#fff" },
+          "&:hover": { bgcolor: "#e2a645ff", color: "#fff" },
         }}
       >
         {moreBtnText}
@@ -187,7 +178,6 @@ export function RelevantTourCard({
     </Paper>
   );
 }
-
 
 function Pill({ icon, text }) {
   return (
@@ -207,7 +197,7 @@ function Pill({ icon, text }) {
 }
 
 /* =========================
-   Booking Modal (unchanged UI)
+   Booking Modal (same UI)
 ========================= */
 function BookTourModal({ open, onClose, tourTitle }) {
   const [form, setForm] = useState({
@@ -361,15 +351,17 @@ export default function TourDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
 
-  // 🔹 Firestore-loaded tour
+  // 🔹 Firestore-loaded tour & related
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [relatedTours, setRelatedTours] = useState([]);
 
   // gallery index + modal
   const [activeImg, setActiveImg] = useState(0);
   const [bookOpen, setBookOpen] = useState(false);
 
-  // 🔹 Load tour from Firestore by slug, fallback to id
+  // 🔹 Load tour from publicTours API
   useEffect(() => {
     let cancelled = false;
 
@@ -378,28 +370,9 @@ export default function TourDetails() {
       setLoading(true);
 
       try {
-        const colRef = collection(db, "tours");
-
-        // 1) try slug
-        const slugQuery = query(colRef, where("slug", "==", slug));
-        const slugSnap = await getDocs(slugQuery);
-
+        const data = await getPublicTourBySlugOrId(slug);
         if (cancelled) return;
-
-        if (!slugSnap.empty) {
-          const docSnap = slugSnap.docs[0];
-          setTour({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          // 2) fallback to doc id
-          const docRef = doc(db, "tours", slug);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setTour({ id: docSnap.id, ...docSnap.data() });
-          } else {
-            setTour(null);
-          }
-        }
-
+        setTour(data || null);
         setActiveImg(0);
       } catch (err) {
         console.error("Error loading tour details:", err);
@@ -410,32 +383,78 @@ export default function TourDetails() {
     }
 
     fetchTour();
-
     return () => {
       cancelled = true;
     };
   }, [slug]);
 
-  // 🔹 Gallery (JSON fields + Firestore fields)
-  const gallery = tour
-    ? Array.isArray(tour.galleryImageUrls) && tour.galleryImageUrls.length
-      ? tour.galleryImageUrls
-      : Array.isArray(tour.gallery) && tour.gallery.length
-      ? tour.gallery
-      : Array.isArray(tour.images) && tour.images.length
-      ? tour.images
-      : Array.isArray(tour.imageUrls) && tour.imageUrls.length
-      ? tour.imageUrls
-      : tour.featureImageUrl
-      ? [tour.featureImageUrl]
-      : tour.image
-      ? [tour.image]
-      : []
-    : [];
+  // 🔹 Load related tours (same category) when tour is loaded
+  useEffect(() => {
+    let cancelled = false;
 
-  // console.log(gallery, "gallery")
+    async function fetchRelated() {
+      if (!tour?.categoryId) {
+        setRelatedTours([]);
+        return;
+      }
+
+      try {
+        const { items } = await getPublicToursByCategoryPage({
+          categoryId: tour.categoryId,
+          pageSize: 6,
+        });
+
+        if (cancelled) return;
+        // exclude current tour
+        const filtered = items.filter((t) => t.id !== tour.id);
+        setRelatedTours(filtered);
+      } catch (err) {
+        console.error("Error loading related tours:", err);
+        if (!cancelled) setRelatedTours([]);
+      }
+    }
+
+    if (tour) {
+      fetchRelated();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tour]);
+
+  // 🔹 Gallery (JSON fields + Firestore fields)
+  const gallery = useMemo(() => {
+    if (!tour) return [];
+
+    const fromFields =
+      (Array.isArray(tour.galleryImageUrls) && tour.galleryImageUrls.length
+        ? tour.galleryImageUrls
+        : []) ||
+      (Array.isArray(tour.gallery) && tour.gallery.length
+        ? tour.gallery
+        : []) ||
+      (Array.isArray(tour.images) && tour.images.length
+        ? tour.images
+        : []) ||
+      (Array.isArray(tour.imageUrls) && tour.imageUrls.length
+        ? tour.imageUrls
+        : []);
+
+    const fallback =
+      tour.featureImageUrl || tour.image ? [tour.featureImageUrl || tour.image] : [];
+
+    const result = fromFields.length ? fromFields : fallback;
+    return result;
+  }, [tour]);
+
+  const activeImage = gallery.length
+    ? gallery[Math.min(activeImg, gallery.length - 1)]
+    : null;
 
   const iframeSrc = useMemo(() => {
+    if (tour?.mapEmbedUrl) return tour.mapEmbedUrl;
+
     const q = encodeURIComponent(
       tour?.mapQuery || tour?.location || tour?.pickup || "India"
     );
@@ -460,7 +479,7 @@ export default function TourDetails() {
     );
   }
 
-  // 🔹 Not found state (same UI as before)
+  // 🔹 Not found state
   if (!tour) {
     return (
       <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
@@ -486,7 +505,7 @@ export default function TourDetails() {
     );
   }
 
-  // 🔹 badges (same logic, but could use Firestore fields)
+  // 🔹 badges
   const badges = [
     {
       icon: <AccessTimeOutlinedIcon sx={{ fontSize: 16 }} />,
@@ -502,7 +521,7 @@ export default function TourDetails() {
     },
     {
       icon: <ChildCareOutlinedIcon sx={{ fontSize: 16 }} />,
-      text: tour.minAge || "Min Age 10+",
+      text: tour.minAge ? `Min Age ${tour.minAge}+` : "Min Age 10+",
     },
     {
       icon: <EventAvailableOutlinedIcon sx={{ fontSize: 16 }} />,
@@ -543,20 +562,25 @@ export default function TourDetails() {
           "24/7 support",
         ];
 
-  console.log(includes, "Includes");
-
   const itinerary = tour.itinerary || [];
+
+  const heroBg =
+    activeImage ||
+    tour.heroImage ||
+    tour.featureImageUrl ||
+    tour.image ||
+    (gallery.length ? gallery[0] : DetailsBanner);
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-      {/* HERO (same) */}
+      {/* HERO */}
       <Box
         sx={{
           position: "relative",
           height: { xs: 260, md: 340 },
-          backgroundImage: `url(${tour.heroImage || tour.image || gallery[0]})`,
+          backgroundImage: `url(${heroBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -674,9 +698,12 @@ export default function TourDetails() {
                 <Box
                   sx={{
                     height: { xs: 220, md: 320 },
-                    backgroundImage: `url(${gallery[activeImg]})`,
+                    backgroundImage: activeImage
+                      ? `url(${activeImage})`
+                      : "none",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
+                    bgcolor: activeImage ? "transparent" : "#e5e7eb",
                   }}
                 />
               </Box>
@@ -734,43 +761,55 @@ export default function TourDetails() {
                 </Typography>
               ) : (
                 <Stack spacing={1.25}>
-                  {itinerary.map((it, idx) => (
-                    <Accordion
-                      key={idx}
-                      disableGutters
-                      elevation={0}
-                      sx={{
-                        border: "1px solid rgba(15,23,42,0.08)",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        "&:before": { display: "none" },
-                      }}
-                    >
-                      <AccordionSummary expandIcon={<KeyboardArrowDownIcon />}>
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            color: "#0f172a",
-                            fontSize: 14,
-                          }}
-                        >
-                          {it.day || `Day ${idx + 1}`}
-                        </Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Typography
-                          sx={{ color: "rgba(15,23,42,0.72)", fontSize: 14 }}
-                        >
-                          {it.text || it.desc || it.description || ""}
-                        </Typography>
-                      </AccordionDetails>
-                    </Accordion>
-                  ))}
+                  {itinerary.map((it, idx) => {
+                    const title =
+                      it.dayTitle ||
+                      it.day ||
+                      (it.dayNumber ? `Day ${it.dayNumber}` : `Day ${idx + 1}`);
+                    const body =
+                      it.description || it.text || it.desc || "";
+
+                    return (
+                      <Accordion
+                        key={idx}
+                        disableGutters
+                        elevation={0}
+                        sx={{
+                          border: "1px solid rgba(15,23,42,0.08)",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          "&:before": { display: "none" },
+                        }}
+                      >
+                        <AccordionSummary expandIcon={<KeyboardArrowDownIcon />}>
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#0f172a",
+                              fontSize: 14,
+                            }}
+                          >
+                            {title}
+                          </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography
+                            sx={{
+                              color: "rgba(15,23,42,0.72)",
+                              fontSize: 14,
+                            }}
+                          >
+                            {body}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    );
+                  })}
                 </Stack>
               )}
             </Paper>
 
-            {/* Pickup & Drop */}
+            {/* Included / Excluded */}
             <Paper
               elevation={0}
               sx={{
@@ -801,15 +840,12 @@ export default function TourDetails() {
                     bgcolor: "#fff",
                   }}
                 >
-                  <Stack direction="row" spacing={1.2} alignItems="center">
-                    {/* <LocalTaxiOutlinedIcon sx={{ color: "#16a34a" }} /> */}
-                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                      Included
-                    </Typography>
-                  </Stack>
                   <Typography
-                    sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
+                    sx={{ fontWeight: 700, color: "#0f172a" }}
                   >
+                    Included
+                  </Typography>
+                  <Box sx={{ mt: 0.8 }}>
                     {includes.map((h, idx) => (
                       <Stack
                         key={h + idx}
@@ -821,13 +857,16 @@ export default function TourDetails() {
                           sx={{ color: "#16a34a", fontSize: 18 }}
                         />
                         <Typography
-                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                          sx={{
+                            color: "rgba(15,23,42,0.75)",
+                            fontSize: 13.5,
+                          }}
                         >
                           {h}
                         </Typography>
                       </Stack>
                     ))}
-                  </Typography>
+                  </Box>
                 </Paper>
 
                 <Paper
@@ -839,15 +878,12 @@ export default function TourDetails() {
                     bgcolor: "#fff",
                   }}
                 >
-                  <Stack direction="row" spacing={1.2} alignItems="center">
-                    {/* <PinDropOutlinedIcon sx={{ color: ACCENT }} /> */}
-                    <Typography sx={{ fontWeight: 700, color: "#0f172a" }}>
-                      Excluded
-                    </Typography>
-                  </Stack>
                   <Typography
-                    sx={{ mt: 0.8, color: "rgba(15,23,42,0.72)", fontSize: 14 }}
+                    sx={{ fontWeight: 700, color: "#0f172a" }}
                   >
+                    Excluded
+                  </Typography>
+                  <Box sx={{ mt: 0.8 }}>
                     {excludes.map((h, idx) => (
                       <Stack
                         key={h + idx}
@@ -855,16 +891,20 @@ export default function TourDetails() {
                         spacing={1}
                         alignItems="center"
                       >
-                        <CloseIcon sx={{ color: "#d51c1cff", fontSize: 18 }} />
+                        <CloseIcon
+                          sx={{ color: "#d51c1cff", fontSize: 18 }}
+                        />
                         <Typography
-                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                          sx={{
+                            color: "rgba(15,23,42,0.75)",
+                            fontSize: 13.5,
+                          }}
                         >
                           {h}
                         </Typography>
                       </Stack>
                     ))}
-                    {/* {tour.excludes || "—"} */}
-                  </Typography>
+                  </Box>
                 </Paper>
               </Box>
             </Paper>
@@ -907,16 +947,13 @@ export default function TourDetails() {
           </Box>
 
           {/* RIGHT */}
-          <Stack
-            spacing={2} // ✅ separation between both sections
-            sx={{ alignSelf: "flex-start" }}
-          >
-            {/* ✅ ONLY THIS BOX IS STICKY */}
+          <Stack spacing={2} sx={{ alignSelf: "flex-start" }}>
+            {/* Pricing / CTA card */}
             <Box
               sx={{
                 position: { xs: "static", md: "" },
                 top: 92,
-                zIndex: 2, // ✅ prevents weird overlay under/over content
+                zIndex: 2,
               }}
             >
               <Paper
@@ -1006,7 +1043,10 @@ export default function TourDetails() {
                           sx={{ color: "#16a34a", fontSize: 18 }}
                         />
                         <Typography
-                          sx={{ color: "rgba(15,23,42,0.75)", fontSize: 13.5 }}
+                          sx={{
+                            color: "rgba(15,23,42,0.75)",
+                            fontSize: 13.5,
+                          }}
                         >
                           {h}
                         </Typography>
@@ -1017,11 +1057,11 @@ export default function TourDetails() {
               </Paper>
             </Box>
 
-            {/* ✅ NORMAL FLOW (NOT STICKY) */}
-            <Box sx={{ position: "sticky" }}>
+            {/* Related tours (from Firestore, no dummy) */}
+            <Box sx={{ position: "static" }}>
               <RelevantTourCard
-                tours={toursJson}
-                title="First Timer Tours Packages"
+                tours={relatedTours}
+                title="Similar Tour Packages"
                 moreBtnText="More Tour Packages"
                 moreBtnTo="/tours"
               />

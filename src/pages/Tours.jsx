@@ -29,11 +29,14 @@ import Footer from "../components/Footer";
 import toursBanner from "../assets/sub-banner.webp";
 
 // 🔹 public APIs (read-only)
-import { getPublicTours } from "../api/publicTours";
+import {
+  getPublicToursPage,
+  getPublicToursByCategoryPage,
+} from "../api/publicTours";
 import { getPublicTourCategories } from "../api/publicCategories";
 
-// ✅ for navigation to TourDetails
-import { useNavigate } from "react-router-dom";
+// ✅ navigation + query params
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const ACCENT = "#ff6b6b";
 
@@ -57,8 +60,7 @@ function TourCard({ tour }) {
 
   const desc = tour.desc || tour.description || "";
   const peopleText =
-    tour.people ||
-    (tour.maxGroupSize ? `Max ${tour.maxGroupSize}` : "—");
+    tour.people || (tour.maxGroupSize ? `Max ${tour.maxGroupSize}` : "—");
   const categoryLabel = tour.category || tour.categoryName || "Category";
 
   const handleViewDetails = () => {
@@ -172,9 +174,7 @@ function TourCard({ tour }) {
             fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         >
-          <Box
-            sx={{ display: "flex", alignItems: "center", gap: 0.8 }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
             <AccessTimeOutlinedIcon sx={{ fontSize: 18 }} />
             <Typography
               variant="body2"
@@ -220,10 +220,7 @@ function TourCard({ tour }) {
             variant="body2"
             sx={{ color: "rgba(15, 23, 42, 0.70)" }}
           >
-            <Box
-              component="span"
-              sx={{ fontWeight: 500, color: "#0f172a" }}
-            >
+            <Box component="span" sx={{ fontWeight: 500, color: "#0f172a" }}>
               Season:
             </Box>{" "}
             {tour.season || "—"}
@@ -252,42 +249,157 @@ function TourCard({ tour }) {
 }
 
 export default function Tours() {
-  // 🔹 data from Firestore
+  // ✅ URL query params
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialCategory = searchParams.get("category") || "all"; // now treated as slug
+  const initialSearch = searchParams.get("q") || "";
+  const initialSort = searchParams.get("sort") || "Most Popular";
+
+  // 🔹 data from Firestore (paginated)
   const [tours, setTours] = useState([]);
   const [categories, setCategories] = useState([]);
+
+  // pagination state
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // 🔹 UI controls
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
-  const [sort, setSort] = useState("Most Popular");
+  // 🔹 UI controls (initialised from URL)
+  // category = slug (or "all")
+  const [search, setSearch] = useState(initialSearch);
+  const [category, setCategory] = useState(initialCategory);
+  const [sort, setSort] = useState(initialSort);
 
-  // ---- load tours + categories once ----
+  // 🔁 whenever filters change, sync them to URL
+  useEffect(() => {
+    const params = {};
+
+    if (category && category !== "all") {
+      // store slug in URL
+      params.category = category;
+    }
+    if (search.trim()) {
+      params.q = search.trim();
+    }
+    if (sort && sort !== "Most Popular") {
+      params.sort = sort;
+    }
+
+    setSearchParams(params, { replace: true });
+  }, [category, search, sort, setSearchParams]);
+
+  // ---- load categories once ----
   useEffect(() => {
     let active = true;
 
-    async function loadData() {
+    async function loadCategories() {
       try {
-        const [cats, t] = await Promise.all([
-          getPublicTourCategories(),
-          getPublicTours(),
-        ]);
-
+        const cats = await getPublicTourCategories();
         if (!active) return;
         setCategories(cats);
-        setTours(t);
+      } catch (err) {
+        console.error("Error loading public tour categories:", err);
+      }
+    }
+
+    loadCategories();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // 🔹 map slug → Firestore categoryId
+  const activeCategoryId = useMemo(() => {
+    if (category === "all") return null;
+    if (!categories || !categories.length) return null;
+
+    const match = categories.find(
+      (c) => c.slug === category || c.id === category
+    );
+    return match ? match.id : null;
+  }, [category, categories]);
+
+  // ---- load first page of tours whenever category/slug changes ----
+  useEffect(() => {
+    let active = true;
+
+    async function loadFirstPage() {
+      setLoading(true);
+      setTours([]);
+      setLastDoc(null);
+      setHasMore(true);
+
+      try {
+        let result;
+
+        if (category === "all" || !activeCategoryId) {
+          // all published tours, page 1
+          result = await getPublicToursPage({ pageSize: 9 });
+        } else {
+          // category-wise published tours, page 1 (by id)
+          result = await getPublicToursByCategoryPage({
+            pageSize: 9,
+            categoryId: activeCategoryId,
+          });
+        }
+
+        const { items, lastDoc: newLastDoc, hasMore: more } = result;
+
+        if (!active) return;
+        setTours(items);
+        setLastDoc(newLastDoc);
+        setHasMore(more);
       } catch (err) {
         console.error("Error loading public tours page:", err);
+        if (!active) return;
+        setTours([]);
+        setLastDoc(null);
+        setHasMore(false);
       } finally {
         if (active) setLoading(false);
       }
     }
 
-    loadData();
+    loadFirstPage();
     return () => {
       active = false;
     };
-  }, []);
+  }, [category, activeCategoryId]);
+
+  // "View More" → next page from Firestore
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore || !lastDoc) return;
+
+    setLoadingMore(true);
+    try {
+      let result;
+
+      if (category === "all" || !activeCategoryId) {
+        result = await getPublicToursPage({
+          pageSize: 9,
+          lastDoc,
+        });
+      } else {
+        result = await getPublicToursByCategoryPage({
+          pageSize: 9,
+          categoryId: activeCategoryId,
+          lastDoc,
+        });
+      }
+
+      const { items, lastDoc: newLastDoc, hasMore: more } = result;
+
+      setTours((prev) => [...prev, ...items]);
+      setLastDoc(newLastDoc);
+      setHasMore(more);
+    } catch (err) {
+      console.error("Error loading more tours:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   // build category options (All + Firestore categories)
   const categoryOptions = useMemo(() => {
@@ -295,21 +407,18 @@ export default function Tours() {
       { label: "All Categories", value: "all" },
       ...(categories || []).map((c) => ({
         label: c.name || "Category",
-        value: c.id,
+        // 🔹 use slug for value (and URL), fallback to id if slug missing
+        value: c.slug || c.id,
       })),
     ];
     return base;
   }, [categories]);
 
+  // search + sort on the currently loaded tours
   const filtered = useMemo(() => {
     let list = [...tours];
 
-    // filter by categoryId
-    if (category !== "all") {
-      list = list.filter((t) => t.categoryId === category);
-    }
-
-    // search by title/location/categoryName
+    // search by title/location/categoryName (client-side)
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((t) => {
@@ -344,7 +453,7 @@ export default function Tours() {
       );
 
     return list;
-  }, [search, category, sort, tours]);
+  }, [search, sort, tours]);
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
@@ -542,31 +651,33 @@ export default function Tours() {
           }}
         >
           {!loading &&
-            filtered.map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
+            filtered.map((tour) => <TourCard key={tour.id} tour={tour} />)}
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-          <Button
-            variant="contained"
-            disableElevation
-            endIcon={<ArrowForwardRoundedIcon />}
-            sx={{
-              bgcolor: ACCENT,
-              borderRadius: 999,
-              textTransform: "none",
-              fontWeight: 500,
-              px: 3,
-              py: 1.25,
-              boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
-              "&:hover": { bgcolor: "#ff5252" },
-            }}
-            onClick={() => console.log("View more")}
-          >
-            View More
-          </Button>
-        </Box>
+        {/* Pagination button */}
+        {!loading && hasMore && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+            <Button
+              variant="contained"
+              disableElevation
+              endIcon={<ArrowForwardRoundedIcon />}
+              sx={{
+                bgcolor: ACCENT,
+                borderRadius: 999,
+                textTransform: "none",
+                fontWeight: 500,
+                px: 3,
+                py: 1.25,
+                boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
+                "&:hover": { bgcolor: "#ff5252" },
+              }}
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Loading..." : "View More"}
+            </Button>
+          </Box>
+        )}
       </Container>
 
       <Footer />
