@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -17,7 +17,8 @@ import CallIcon from "@mui/icons-material/Call";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { categories } from "../data/dummy";
+// import { categories } from "../data/dummy"; // ❌ no dummy now
+import { getPublicTourCategories } from "../api/publicCategories"; // ✅ real tour categories
 
 export default function Header() {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileCat, setMobileCat] = useState(false);
+
+  // real categories (tour type only)
+  const [tourCategories, setTourCategories] = useState([]);
+  const [catLoading, setCatLoading] = useState(false);
+  const [catLoaded, setCatLoaded] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -39,7 +45,6 @@ export default function Header() {
   const hoverColor = scrolled ? "#2563EB" : "#FFFFFF";
 
   const go = (to) => {
-    // Close any open menus before navigating
     setOpenCat(false);
     setMobileCat(false);
     setMobileOpen(false);
@@ -47,10 +52,31 @@ export default function Header() {
   };
 
   const goCategory = (c) => {
-    // Use slug if available, otherwise fallback to id/name
     const key = c?.slug ?? c?.id ?? c?.name;
     go(`/category/${encodeURIComponent(String(key))}`);
   };
+
+  const loadTourCategories = useCallback(async () => {
+    if (catLoaded || catLoading) return;
+    try {
+      setCatLoading(true);
+      const list = await getPublicTourCategories(); // only type = "tour"
+      setTourCategories(list);
+      setCatLoaded(true);
+    } catch (err) {
+      console.error("Error loading public tour categories:", err);
+    } finally {
+      setCatLoading(false);
+    }
+  }, [catLoaded, catLoading]);
+
+  useEffect(() => {
+    if (openCat) loadTourCategories();
+  }, [openCat, loadTourCategories]);
+
+  useEffect(() => {
+    if (mobileCat) loadTourCategories();
+  }, [mobileCat, loadTourCategories]);
 
   return (
     <>
@@ -130,6 +156,7 @@ export default function Header() {
                   spacing={0.5}
                   alignItems="center"
                   sx={{ cursor: "pointer" }}
+                  onClick={() => go("/category")}
                 >
                   <Typography sx={{ fontWeight: 500, color: linkColor }}>
                     Categories
@@ -141,7 +168,7 @@ export default function Header() {
                   <Paper
                     sx={{
                       position: "absolute",
-                      top: "calc(100% + 14px)",
+                      top: "100%", // ✅ no gap → no flicker
                       left: -10,
                       width: 280,
                       p: 1,
@@ -149,11 +176,23 @@ export default function Header() {
                       boxShadow: "0 20px 50px rgba(15,23,42,0.18)",
                     }}
                   >
-                    {categories.slice(0, 6).map((c) => (
+                    {catLoading && !tourCategories.length && (
+                      <MenuItem disabled sx={{ fontWeight: 500 }}>
+                        Loading...
+                      </MenuItem>
+                    )}
+
+                    {!catLoading && tourCategories.length === 0 && (
+                      <MenuItem disabled sx={{ fontWeight: 500 }}>
+                        No categories found
+                      </MenuItem>
+                    )}
+
+                    {tourCategories.map((c) => (
                       <MenuItem
                         key={c.id}
                         onClick={() => goCategory(c)}
-                        sx={{ fontWeight: 700 }}
+                        sx={{ fontWeight: 500 }} // ✅ lighter
                       >
                         {c.name}
                       </MenuItem>
@@ -214,20 +253,57 @@ export default function Header() {
               <Stack
                 direction="row"
                 justifyContent="space-between"
-                onClick={() => setMobileCat((v) => !v)}
                 sx={{ cursor: "pointer" }}
               >
-                <Typography fontWeight={700}>Categories</Typography>
-                <KeyboardArrowDownIcon />
+                {/* Tap text → /category */}
+                <Typography
+                  fontWeight={700}
+                  onClick={() => go("/category")}
+                >
+                  Categories
+                </Typography>
+                {/* Tap arrow → expand list */}
+                <KeyboardArrowDownIcon
+                  onClick={() => setMobileCat((v) => !v)}
+                  sx={{ cursor: "pointer" }}
+                />
               </Stack>
 
               {mobileCat && (
                 <Stack sx={{ pl: 2, mt: 1 }}>
-                  {categories.slice(0, 6).map((c) => (
+                  {catLoading && !tourCategories.length && (
+                    <Typography
+                      sx={{
+                        py: 0.5,
+                        fontWeight: 500,
+                        color: "text.secondary",
+                      }}
+                    >
+                      Loading...
+                    </Typography>
+                  )}
+
+                  {!catLoading && tourCategories.length === 0 && (
+                    <Typography
+                      sx={{
+                        py: 0.5,
+                        fontWeight: 500,
+                        color: "text.secondary",
+                      }}
+                    >
+                      No categories found
+                    </Typography>
+                  )}
+
+                  {tourCategories.map((c) => (
                     <Typography
                       key={c.id}
                       onClick={() => goCategory(c)}
-                      sx={{ py: 0.5, cursor: "pointer", fontWeight: 600 }}
+                      sx={{
+                        py: 0.5,
+                        cursor: "pointer",
+                        fontWeight: 500, // ✅ lighter
+                      }}
                     >
                       {c.name}
                     </Typography>
