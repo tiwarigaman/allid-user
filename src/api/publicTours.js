@@ -14,6 +14,19 @@ import { db } from "../firebase";
 
 const COLLECTION = "tours";
 
+// ---------- SIMPLE IN-MEMORY CACHE ----------
+
+// featured tours cache (homepage)
+const FEATURED_CACHE_TTL = 60 * 1000; // 60s
+let featuredCache = {
+  data: null,
+  fetchedAt: 0,
+};
+
+// tour details cache (details page)
+const TOUR_DETAIL_CACHE_TTL = 60 * 1000; // 60s
+const tourDetailCache = new Map(); // key: slugOrId -> { data, fetchedAt }
+
 // Map Firestore doc → object that also works with existing TourCard
 function mapTourDoc(docSnap) {
   const data = docSnap.data() || {};
@@ -166,9 +179,17 @@ export async function getPublicTours(options = {}) {
 export async function getPublicTourBySlugOrId(slugOrId) {
   if (!slugOrId) return null;
 
+  const now = Date.now();
+
+  // 🔹 0) Check cache first
+  const cached = tourDetailCache.get(slugOrId);
+  if (cached && now - cached.fetchedAt < TOUR_DETAIL_CACHE_TTL) {
+    return cached.data;
+  }
+
   const baseRef = collection(db, COLLECTION);
 
-  // 1) Try by slug (no extra where → no composite index needed)
+  // 1) Try by slug
   try {
     const slugQuery = query(
       baseRef,
@@ -181,8 +202,12 @@ export async function getPublicTourBySlugOrId(slugOrId) {
       const docSnap = slugSnap.docs[0];
       const tour = mapTourDoc(docSnap);
 
-      // Only expose published tours publicly
       if (tour.status === "published") {
+        // store to cache
+        tourDetailCache.set(slugOrId, {
+          data: tour,
+          fetchedAt: now,
+        });
         return tour;
       }
       return null;
@@ -199,6 +224,10 @@ export async function getPublicTourBySlugOrId(slugOrId) {
     if (docSnap.exists()) {
       const tour = mapTourDoc(docSnap);
       if (tour.status === "published") {
+        tourDetailCache.set(slugOrId, {
+          data: tour,
+          fetchedAt: now,
+        });
         return tour;
       }
     }
@@ -216,8 +245,24 @@ export async function getPublicTourBySlugOrId(slugOrId) {
  * - query by isFeatured == true only
  * - then filter to status === "published" in JS
  * - sort by createdAt in JS
+ *
+ * Now with a small in-memory cache to reduce repeat reads.
  */
 export async function getFeaturedTours(maxItems = 6) {
+  const now = Date.now();
+
+  // 🔹 Serve from cache if fresh
+  if (
+    featuredCache.data &&
+    now - featuredCache.fetchedAt < FEATURED_CACHE_TTL
+  ) {
+    const base = featuredCache.data;
+    if (typeof maxItems === "number" && maxItems > 0) {
+      return base.slice(0, maxItems);
+    }
+    return base;
+  }
+
   const baseRef = collection(db, COLLECTION);
 
   // Single where → no composite index required
@@ -241,6 +286,12 @@ export async function getFeaturedTours(maxItems = 6) {
         : 0;
     return tb - ta;
   });
+
+  // store full list in cache
+  featuredCache = {
+    data: items,
+    fetchedAt: now,
+  };
 
   if (typeof maxItems === "number" && maxItems > 0) {
     return items.slice(0, maxItems);

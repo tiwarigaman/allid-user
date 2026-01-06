@@ -4,11 +4,29 @@ import { db } from "../firebase";
 
 const COLLECTION = "categories";
 
+// ---------- SIMPLE IN-MEMORY CACHE ----------
+
+const TOUR_CATEGORY_CACHE_TTL = 60 * 1000; // 60s
+let tourCategoryCache = {
+  data: null,
+  fetchedAt: 0,
+};
+
 /**
  * Internal: fetch + filter + sort *all* active tour categories.
  * Used by both the simple helper and the paginated helper.
  */
 async function fetchAllActiveTourCategories() {
+  const now = Date.now();
+
+  // 🔹 return cache if still fresh
+  if (
+    tourCategoryCache.data &&
+    now - tourCategoryCache.fetchedAt < TOUR_CATEGORY_CACHE_TTL
+  ) {
+    return tourCategoryCache.data;
+  }
+
   const q = query(collection(db, COLLECTION), where("type", "==", "tour"));
   const snap = await getDocs(q);
 
@@ -31,6 +49,12 @@ async function fetchAllActiveTourCategories() {
 
     return (a.name || "").localeCompare(b.name || "");
   });
+
+  // 🔹 update cache
+  tourCategoryCache = {
+    data: filtered,
+    fetchedAt: now,
+  };
 
   return filtered;
 }
