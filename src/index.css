@@ -63,3 +63,13 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.css-1vt7tjd-MuiFormControl-root-MuiTextField-root .MuiOutlinedInput-root {
+    border-radius: 0px!important;
+}
+a{
+  text-decoration: none;
+}
+a:hover {
+    color: #ff5656;
+    text-decoration: none!important;
+}

@@ -16,6 +16,7 @@ import ShieldIcon from "@mui/icons-material/Shield";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CallIcon from "@mui/icons-material/Call";
+import { Link as RouterLink } from "react-router-dom";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -356,11 +357,13 @@ export default function Home() {
 
           <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
             <Button
+              component={RouterLink}
+              to="/tours"
               variant="contained"
               endIcon={<ArrowRightAltIcon />}
               sx={{
                 bgcolor: "#FF6B6B",
-                "&:hover": { bgcolor: "#ff5656" },
+                "&:hover": { bgcolor: "#ff5656", color:"#fff" },
                 borderRadius: 999,
                 px: 3,
                 py: 1.2,

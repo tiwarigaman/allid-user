@@ -7,17 +7,323 @@ import {
   CardContent,
   Container,
   Typography,
+  Paper,
+  TextField,
+  MenuItem,
+  List,
+  ListItemButton,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CustomTourCTA from "../components/CustomTourCTA";
 import subBanner from "../assets/sub-banner.webp";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { getPublicTourCategoriesPage } from "../api/publicCategories";
 
 const ACCENT = "#ff6b6b";
+
+/* ----------------- Right Sidebar Form + Categories ----------------- */
+
+function TripPlanSidebar({ categories }) {
+  const [form, setForm] = useState({
+    arrivalDate: "",
+    days: "",
+    adults: "",
+    children: "",
+    accommodation: "",
+    info: "",
+    name: "",
+    email: "",
+    country: "",
+    phone: "",
+  });
+
+  const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    // UI only
+  };
+
+  return (
+    <Box
+      sx={{
+        position: { lg: "sticky" },
+        top: { lg: 92 },
+      }}
+    >
+      {/* Form */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          overflow: "hidden",
+          border: "1px solid rgba(15,23,42,0.10)",
+          boxShadow: "0 12px 26px rgba(15,23,42,0.06)",
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.2,
+            bgcolor: "#111827",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>
+            Plan Your Trip Now
+          </Typography>
+        </Box>
+
+        <Box component="form" onSubmit={onSubmit} sx={{ p: 2, bgcolor: "#f3edde" }}>
+          <TextField
+            fullWidth
+            type="date"
+            value={form.arrivalDate}
+            onChange={(e) => update("arrivalDate", e.target.value)}
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+            InputLabelProps={{ shrink: true }}
+            label="Date of Arrival"
+          />
+
+          <TextField
+            fullWidth
+            select
+            value={form.days}
+            onChange={(e) => update("days", e.target.value)}
+            label="No. of Days"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["1-3", "4-6", "7-10", "10+"].map((v) => (
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.adults}
+            onChange={(e) => update("adults", e.target.value)}
+            label="Adults"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((v) => (
+              <MenuItem key={v} value={String(v)}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.children}
+            onChange={(e) => update("children", e.target.value)}
+            label="Childrens (5-12 Yr)"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {[0, 1, 2, 3, 4, 5, 6].map((v) => (
+              <MenuItem key={v} value={String(v)}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.accommodation}
+            onChange={(e) => update("accommodation", e.target.value)}
+            label="Select Accommodation"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["Budget", "3 Star", "4 Star", "5 Star", "Luxury"].map((v) => (
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            multiline
+            minRows={4}
+            value={form.info}
+            onChange={(e) => update("info", e.target.value)}
+            label="Additional Information"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            label="Name"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            type="email"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            label="Email"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            select
+            value={form.country}
+            onChange={(e) => update("country", e.target.value)}
+            label="Country of Residence"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["India", "United Kingdom", "United States", "Canada", "Australia", "Other"].map(
+              (v) => (
+                <MenuItem key={v} value={v}>
+                  {v}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <TextField
+            fullWidth
+            value={form.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            label="Contact Number"
+            sx={{
+              mb: 1.75,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            startIcon={<MailOutlineRoundedIcon />}
+            sx={{
+              bgcolor: "#F97316",
+              color: "#fff",
+              borderRadius: 1,
+              py: 1.2,
+              fontWeight: 700,
+              textTransform: "none",
+              "&:hover": { bgcolor: "#ea6a10" },
+              boxShadow: "0 12px 26px rgba(249,115,22,0.30)",
+            }}
+          >
+            Submit
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Category list */}
+      <Paper
+        elevation={0}
+        sx={{
+          mt: 2.5,
+          borderRadius: 2,
+          overflow: "hidden",
+          border: "1px solid rgba(15,23,42,0.10)",
+          boxShadow: "0 12px 26px rgba(15,23,42,0.06)",
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.2,
+            bgcolor: "#b30000",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>
+            Tours Packages
+          </Typography>
+        </Box>
+
+        <List disablePadding>
+          {(categories || []).map((c, idx) => {
+            const to = c.slug ? `/category/${c.slug}` : `/category/${c.id}`;
+            return (
+              <React.Fragment key={c.id || c.slug || idx}>
+                <ListItemButton
+                  component={RouterLink}
+                  to={to}
+                  sx={{
+                    py: 1.1,
+                    "&:hover": { bgcolor: "rgba(15,23,42,0.04)" },
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ fontWeight: 500, color: "#0f172a" }}>
+                        {c.name || "Category"}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+                <Divider sx={{ borderColor: "rgba(15,23,42,0.08)" }} />
+              </React.Fragment>
+            );
+          })}
+        </List>
+      </Paper>
+    </Box>
+  );
+}
+
+/* ----------------- Category Card ----------------- */
 
 function CategoryCard({ category }) {
   const navigate = useNavigate();
@@ -34,8 +340,6 @@ function CategoryCard({ category }) {
   const handleExplore = () => {
     const slugOrId = category.slug || category.id;
     if (!slugOrId) return;
-
-    // ✅ For now: go to Tours page with category filter (slug in query param)
     navigate(`/tours?category=${encodeURIComponent(String(slugOrId))}`);
   };
 
@@ -72,7 +376,6 @@ function CategoryCard({ category }) {
           }}
         />
 
-        {/* Icon circle */}
         <Box
           sx={{
             position: "absolute",
@@ -89,14 +392,7 @@ function CategoryCard({ category }) {
           <SearchRoundedIcon sx={{ fontSize: 20, color: "#fff" }} />
         </Box>
 
-        <Box
-          sx={{
-            position: "absolute",
-            left: 20,
-            right: 20,
-            bottom: 18,
-          }}
-        >
+        <Box sx={{ position: "absolute", left: 20, right: 20, bottom: 18 }}>
           <Typography
             sx={{
               color: "#fff",
@@ -151,14 +447,18 @@ function CategoryCard({ category }) {
   );
 }
 
+/* ----------------- Page ----------------- */
+
 export default function CategoryPage() {
   const [categories, setCategories] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // 🔹 first page load (paginated from Firestore)
+  // first page load
   useEffect(() => {
     let active = true;
 
@@ -171,13 +471,16 @@ export default function CategoryPage() {
           });
 
         if (!active) return;
+
         setCategories(items);
+        setAllCategories(items); // ✅ used by sidebar list
         setLastDoc(cursor);
         setHasMore(hasMore);
       } catch (err) {
         console.error("Error loading public tour categories:", err);
         if (!active) return;
         setCategories([]);
+        setAllCategories([]);
         setLastDoc(null);
         setHasMore(false);
       } finally {
@@ -191,7 +494,7 @@ export default function CategoryPage() {
     };
   }, []);
 
-  // 🔹 “View More Categories” → next page
+  // View more
   const handleViewMore = async () => {
     if (loadingMore || !hasMore || !lastDoc) return;
 
@@ -204,6 +507,7 @@ export default function CategoryPage() {
         });
 
       setCategories((prev) => [...prev, ...items]);
+      setAllCategories((prev) => [...prev, ...items]); // ✅ sidebar gets full list too
       setLastDoc(cursor);
       setHasMore(more);
     } catch (err) {
@@ -217,11 +521,11 @@ export default function CategoryPage() {
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-      {/* 🔹 Hero with background image */}
+      {/* Hero */}
       <Box
         sx={{
           position: "relative",
-          height: { xs: 260, md: 340 },
+          height: { xs: 240, md: 375 },
           overflow: "hidden",
           borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
           backgroundImage: `url(${subBanner})`,
@@ -277,126 +581,82 @@ export default function CategoryPage() {
         </Container>
       </Box>
 
-      {/* 🔹 Category grid */}
+      {/* ✅ 2 Column Layout */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Box
           sx={{
             display: "grid",
-            gap: 3.5,
+            gap: 3,
+            alignItems: "start",
             gridTemplateColumns: {
               xs: "1fr",
-              sm: "repeat(2, minmax(0, 1fr))",
-              md: "repeat(3, minmax(0, 1fr))",
+              lg: "minmax(0, 1fr) 380px",
             },
           }}
         >
-          {!loading &&
-            categories.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} />
-            ))}
-        </Box>
-
-        {!loading && categories.length === 0 && (
-          <Typography
-            sx={{
-              textAlign: "center",
-              mt: 6,
-              color: "rgba(15,23,42,0.6)",
-            }}
-          >
-            No tour categories found. Please check back soon.
-          </Typography>
-        )}
-
-        {/* 🔹 View More (pagination) */}
-        {!loading && hasMore && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mt: 5,
-            }}
-          >
-            <Button
-              variant="contained"
-              disableElevation
+          {/* LEFT: Category cards */}
+          <Box sx={{ minWidth: 0 }}>
+            <Box
               sx={{
-                px: 3.5,
-                py: 1.2,
-                borderRadius: 999,
-                textTransform: "none",
-                fontWeight: 600,
-                backgroundColor: ACCENT,
-                boxShadow: "0 16px 40px rgba(255,107,107,0.45)",
-                "&:hover": { backgroundColor: "#ff5252" },
-              }}
-              onClick={handleViewMore}
-              disabled={loadingMore}
-            >
-              {loadingMore ? "Loading..." : "View More Categories"}
-            </Button>
-          </Box>
-        )}
-      </Container>
-
-      {/* 🔹 Gradient Contact CTA (matching Tours page style) */}
-      <Box sx={{ py: 6 }}>
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              borderRadius: 4,
-              px: { xs: 3, md: 8 },
-              py: { xs: 5, md: 6 },
-              textAlign: "center",
-              color: "#fff",
-              background:
-                "linear-gradient(90deg, #ff6b6b 0%, #fb923c 35%, #6366f1 100%)",
-              boxShadow: "0 30px 80px rgba(15,23,42,0.35)",
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: 800,
-                fontSize: { xs: 22, sm: 26 },
-                mb: 2,
-                letterSpacing: -0.5,
-              }}
-            >
-              Can&apos;t Find What You&apos;re Looking For?
-            </Typography>
-            <Typography
-              sx={{
-                maxWidth: 680,
-                mx: "auto",
-                mb: 3,
-                fontSize: { xs: 13.5, sm: 15 },
-              }}
-            >
-              We offer customized tour packages tailored to your preferences.
-              Contact us to create your perfect journey.
-            </Typography>
-            <Button
-              variant="contained"
-              disableElevation
-              sx={{
-                px: 4,
-                py: 1.4,
-                borderRadius: 999,
-                textTransform: "none",
-                fontWeight: 600,
-                bgcolor: "#fff",
-                color: "#111827",
-                "&:hover": {
-                  bgcolor: "#f9fafb",
+                display: "grid",
+                gap: 3.5,
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                  md: "repeat(2, minmax(0, 1fr))",
                 },
               }}
-              href="/contact"
             >
-              Contact Us
-            </Button>
+              {!loading &&
+                categories.map((cat) => (
+                  <CategoryCard key={cat.id} category={cat} />
+                ))}
+            </Box>
+
+            {!loading && categories.length === 0 && (
+              <Typography
+                sx={{
+                  textAlign: "center",
+                  mt: 6,
+                  color: "rgba(15,23,42,0.6)",
+                }}
+              >
+                No tour categories found. Please check back soon.
+              </Typography>
+            )}
+
+            {!loading && hasMore && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+                <Button
+                  variant="contained"
+                  disableElevation
+                  sx={{
+                    px: 3.5,
+                    py: 1.2,
+                    borderRadius: 999,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    backgroundColor: ACCENT,
+                    boxShadow: "0 16px 40px rgba(255,107,107,0.45)",
+                    "&:hover": { backgroundColor: "#ff5252" },
+                  }}
+                  onClick={handleViewMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? "Loading..." : "View More Categories"}
+                </Button>
+              </Box>
+            )}
           </Box>
-        </Container>
-      </Box>
+
+          {/* RIGHT: Sidebar */}
+          <Box>
+            <TripPlanSidebar categories={allCategories} />
+          </Box>
+        </Box>
+      </Container>
+
+     <CustomTourCTA />
 
       <Footer />
     </Box>

@@ -11,29 +11,35 @@ import {
   Breadcrumbs,
   Link as MuiLink,
   Divider,
+  Paper,
+  TextField,
+  MenuItem,
+  List,
+  ListItemButton,
+  ListItemText,
 } from "@mui/material";
 
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CustomTourCTA from "../components/CustomTourCTA";
 
 import toursBanner from "../assets/sub-banner.webp";
 
-// public APIs
-import {
-  getPublicToursByCategoryPage,
-} from "../api/publicTours";
+// public APIs (LOGIC SAME)
+import { getPublicToursByCategoryPage } from "../api/publicTours";
 import { getPublicTourCategories } from "../api/publicCategories";
 
 const ACCENT = "#ff6b6b";
 
-/* ---------- Re-use the same Tour Card style as Tours.jsx ---------- */
+/* ---------- Tour Card ---------- */
 
 function TourCard({ tour }) {
   const navigate = useNavigate();
@@ -66,6 +72,7 @@ function TourCard({ tour }) {
         boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
       }}
     >
+      {/* ✅ Card image only (NO banner inside card) */}
       <Box sx={{ position: "relative" }}>
         <Box
           sx={{
@@ -85,9 +92,8 @@ function TourCard({ tour }) {
             left: 14,
             bgcolor: "rgba(15, 23, 42, 0.78)",
             color: "#fff",
-            fontWeight: 500,
+            fontWeight: 600,
             borderRadius: 999,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         />
 
@@ -100,9 +106,8 @@ function TourCard({ tour }) {
             right: 14,
             bgcolor: ACCENT,
             color: "#fff",
-            fontWeight: 600,
+            fontWeight: 700,
             borderRadius: 999,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         />
       </Box>
@@ -118,7 +123,7 @@ function TourCard({ tour }) {
           }}
         >
           <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {tour.location || "—"}
           </Typography>
         </Box>
@@ -126,11 +131,11 @@ function TourCard({ tour }) {
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 500,
+            fontWeight: 600,
             lineHeight: 1.18,
             mb: 1,
             color: "#0f172a",
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
+            fontSize: 18,
           }}
         >
           {tour.title || "Tour Title"}
@@ -157,7 +162,6 @@ function TourCard({ tour }) {
             gap: 2,
             color: "rgba(15, 23, 42, 0.70)",
             mb: 1.75,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
@@ -188,24 +192,10 @@ function TourCard({ tour }) {
           </Box>
         </Box>
 
-        <Divider
-          sx={{
-            my: 1.75,
-            borderColor: "rgba(15, 23, 42, 0.08)",
-          }}
-        />
+        <Divider sx={{ my: 1.75, borderColor: "rgba(15, 23, 42, 0.08)" }} />
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ color: "rgba(15, 23, 42, 0.70)" }}
-          >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography variant="body2" sx={{ color: "rgba(15, 23, 42, 0.70)" }}>
             <Box component="span" sx={{ fontWeight: 500, color: "#0f172a" }}>
               Season:
             </Box>{" "}
@@ -234,7 +224,302 @@ function TourCard({ tour }) {
   );
 }
 
-/* ----------------- Category Details Page ----------------- */
+/* ----------------- Right Sidebar Form + Categories ----------------- */
+
+function TripPlanSidebar({ categories }) {
+  const [form, setForm] = useState({
+    arrivalDate: "",
+    days: "",
+    adults: "",
+    children: "",
+    accommodation: "",
+    info: "",
+    name: "",
+    email: "",
+    country: "",
+    phone: "",
+  });
+
+  const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    // UI only
+  };
+
+  return (
+    <Box
+      sx={{
+        position: { lg: "sticky" },
+        top: { lg: 92 },
+      }}
+    >
+      {/* Form */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 2,
+          overflow: "hidden",
+          border: "1px solid rgba(15,23,42,0.10)",
+          boxShadow: "0 12px 26px rgba(15,23,42,0.06)",
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.2,
+            bgcolor: "#111827",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 16 }}>
+            Plan Your Trip Now
+          </Typography>
+        </Box>
+
+        <Box component="form" onSubmit={onSubmit} sx={{ p: 2, bgcolor: "#f3edde" }}>
+          <TextField
+            fullWidth
+            type="date"
+            value={form.arrivalDate}
+            onChange={(e) => update("arrivalDate", e.target.value)}
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+            InputLabelProps={{ shrink: true }}
+            label="Date of Arrival"
+          />
+
+          <TextField
+            fullWidth
+            select
+            value={form.days}
+            onChange={(e) => update("days", e.target.value)}
+            label="No. of Days"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["1-3", "4-6", "7-10", "10+"].map((v) => (
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.adults}
+            onChange={(e) => update("adults", e.target.value)}
+            label="Adults"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((v) => (
+              <MenuItem key={v} value={String(v)}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.children}
+            onChange={(e) => update("children", e.target.value)}
+            label="Childrens (5-12 Yr)"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {[0, 1, 2, 3, 4, 5, 6].map((v) => (
+              <MenuItem key={v} value={String(v)}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            select
+            value={form.accommodation}
+            onChange={(e) => update("accommodation", e.target.value)}
+            label="Select Accommodation"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["Budget", "3 Star", "4 Star", "5 Star", "Luxury"].map((v) => (
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            fullWidth
+            multiline
+            minRows={4}
+            value={form.info}
+            onChange={(e) => update("info", e.target.value)}
+            label="Additional Information"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+            label="Name"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            type="email"
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+            label="Email"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <TextField
+            fullWidth
+            select
+            value={form.country}
+            onChange={(e) => update("country", e.target.value)}
+            label="Country of Residence"
+            sx={{
+              mb: 1.5,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          >
+            {["India", "United Kingdom", "United States", "Canada", "Australia", "Other"].map(
+              (v) => (
+                <MenuItem key={v} value={v}>
+                  {v}
+                </MenuItem>
+              )
+            )}
+          </TextField>
+
+          <TextField
+            fullWidth
+            value={form.phone}
+            onChange={(e) => update("phone", e.target.value)}
+            label="Contact Number"
+            sx={{
+              mb: 1.75,
+              bgcolor: "#fff",
+              "& .MuiOutlinedInput-root": { borderRadius: 1 },
+            }}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            startIcon={<MailOutlineRoundedIcon />}
+            sx={{
+              bgcolor: "#F97316",
+              color: "#fff",
+              borderRadius: 1,
+              py: 1.2,
+              fontWeight: 700,
+              textTransform: "none",
+              "&:hover": { bgcolor: "#ea6a10" },
+              boxShadow: "0 12px 26px rgba(249,115,22,0.30)",
+            }}
+          >
+            Submit
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Category list */}
+      <Paper
+        elevation={0}
+        sx={{
+          mt: 2.5,
+          borderRadius: 2,
+          overflow: "hidden",
+          border: "1px solid rgba(15,23,42,0.10)",
+          boxShadow: "0 12px 26px rgba(15,23,42,0.06)",
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            px: 2,
+            py: 1.2,
+            bgcolor: "#ff5656",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <Typography sx={{ fontWeight: 500, fontSize: 16 }}>
+            Tours Packages
+          </Typography>
+        </Box>
+
+        <List disablePadding>
+          {(categories || []).map((c, idx) => {
+            const to = c.slug ? `/category/${c.slug}` : `/category/${c.id}`;
+            return (
+              <React.Fragment key={c.id || c.slug || idx}>
+                <ListItemButton
+                  component={RouterLink}
+                  to={to}
+                  sx={{
+                    py: 1.1,
+                    "&:hover": { bgcolor: "rgba(15,23,42,0.04)" },
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ fontWeight: 500, color: "#0f172a" }}>
+                        {c.name || "Category"}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+                <Divider sx={{ borderColor: "rgba(15,23,42,0.08)" }} />
+              </React.Fragment>
+            );
+          })}
+        </List>
+      </Paper>
+    </Box>
+  );
+}
+
+/* ----------------- Page ----------------- */
 
 export default function ToursCategoryDetails() {
   const { slug } = useParams();
@@ -246,18 +531,19 @@ export default function ToursCategoryDetails() {
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
 
-  const [loadingCategory, setLoadingCategory] = useState(true);
   const [loadingTours, setLoadingTours] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [notFound, setNotFound] = useState(false);
 
-  // 1) Resolve slug → category object (using publicCategories API)
+  // categories for sidebar (dynamic)
+  const [allCategories, setAllCategories] = useState([]);
+
+  // 1) Resolve slug → category object (LOGIC SAME)
   useEffect(() => {
     let active = true;
 
     async function loadCategory() {
-      setLoadingCategory(true);
       setNotFound(false);
       setCategory(null);
       setCategoryId(null);
@@ -266,27 +552,25 @@ export default function ToursCategoryDetails() {
       setHasMore(true);
 
       try {
-        const cats = await getPublicTourCategories(); // returns all active tour categories
+        const cats = await getPublicTourCategories();
         if (!active) return;
 
+        setAllCategories(cats || []);
+
         const match =
-          cats.find((c) => c.slug === slug) ||
-          cats.find((c) => c.id === slug);
+          cats.find((c) => c.slug === slug) || cats.find((c) => c.id === slug);
 
         if (!match) {
           setNotFound(true);
-          setLoadingCategory(false);
           return;
         }
 
         setCategory(match);
         setCategoryId(match.id);
-        setLoadingCategory(false);
       } catch (err) {
         console.error("Error loading category:", err);
         if (!active) return;
         setNotFound(true);
-        setLoadingCategory(false);
       }
     }
 
@@ -296,7 +580,7 @@ export default function ToursCategoryDetails() {
     };
   }, [slug]);
 
-  // 2) Once we know categoryId → load first page of tours in this category
+  // 2) Load first page tours (LOGIC SAME)
   useEffect(() => {
     if (!categoryId) {
       setLoadingTours(false);
@@ -337,7 +621,7 @@ export default function ToursCategoryDetails() {
     };
   }, [categoryId]);
 
-  // 3) “View More Tours” pagination
+  // 3) Load more (LOGIC SAME)
   const handleLoadMore = async () => {
     if (loadingMore || !hasMore || !lastDoc || !categoryId) return;
 
@@ -360,21 +644,24 @@ export default function ToursCategoryDetails() {
     }
   };
 
-  const heroImage = category?.imageUrl || toursBanner;
-  const title = category?.name || (notFound ? "Category Not Found" : "Loading…");
+  // ✅ FIX: hero image must be defined (your code was missing this)
+  // const heroImage = category?.imageUrl || toursBanner;
+
+  const title =
+    category?.name || (notFound ? "Category Not Found" : "Loading…");
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-      {/* Hero with breadcrumb */}
+      {/* ✅ Banner (ONLY HERE) */}
       <Box
         sx={{
           position: "relative",
-          height: { xs: 220, md: 280 },
+          height: { xs: 240, sm: 280, md: 375 },
           overflow: "hidden",
-          borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
-          backgroundImage: `url(${heroImage})`,
+          borderBottom: "1px solid rgba(15, 23, 42, 0.10)",
+          backgroundImage: `url(${toursBanner})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -384,7 +671,17 @@ export default function ToursCategoryDetails() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.82) 100%)",
+              "linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.78) 70%, rgba(15,23,42,0.86) 100%)",
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(800px 380px at 50% 45%, rgba(37,99,235,0.20) 0%, rgba(0,0,0,0) 60%)",
+            pointerEvents: "none",
           }}
         />
 
@@ -398,66 +695,64 @@ export default function ToursCategoryDetails() {
             zIndex: 1,
           }}
         >
-          <Box sx={{ color: "#fff" }}>
-            <Breadcrumbs
-              aria-label="breadcrumb"
-              sx={{
-                color: "rgba(255,255,255,0.80)",
-                mb: 1,
-                "& .MuiBreadcrumbs-separator": {
-                  color: "rgba(255,255,255,0.65)",
-                },
-              }}
-            >
-              <MuiLink
-                component={RouterLink}
-                underline="hover"
-                color="inherit"
-                to="/"
-              >
-                Home
-              </MuiLink>
-              <MuiLink
-                component={RouterLink}
-                underline="hover"
-                color="inherit"
-                to="/category"
-              >
-                Categories
-              </MuiLink>
-              <Typography color="inherit">
-                {category?.name || "Category"}
-              </Typography>
-            </Breadcrumbs>
-
+          <Box
+            sx={{
+              width: "100%",
+              textAlign: "center",
+              color: "#fff",
+              px: { xs: 1, sm: 2 },
+            }}
+          >
             <Typography
               sx={{
-                fontWeight: 800,
-                letterSpacing: -0.8,
-                fontSize: { xs: 26, sm: 32, md: 40 },
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                fontSize: { xs: 34, sm: 44, md: 56 },
                 lineHeight: 1.05,
+                textShadow: "0 14px 40px rgba(0,0,0,0.55)",
               }}
             >
               {title}
             </Typography>
 
-            {category?.description && (
-              <Typography
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2.5 }}>
+              <Breadcrumbs
+                aria-label="breadcrumb"
                 sx={{
-                  mt: 1,
-                  maxWidth: 620,
-                  fontSize: { xs: 13.5, sm: 15 },
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(255,255,255,0.80)",
+                  "& .MuiBreadcrumbs-separator": {
+                    color: "rgba(255,255,255,0.65)",
+                  },
                 }}
               >
-                {category.description}
-              </Typography>
-            )}
+                <MuiLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/"
+                  sx={{ fontWeight: 500 }}
+                >
+                  Home
+                </MuiLink>
+                <MuiLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/category"
+                  sx={{ fontWeight: 500 }}
+                >
+                  Categories
+                </MuiLink>
+                <Typography color="inherit" sx={{ fontWeight: 500 }}>
+                  {category?.name || "Category"}
+                </Typography>
+              </Breadcrumbs>
+            </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* Tours list */}
+      {/* ✅ Layout */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
         {notFound ? (
           <Typography
@@ -467,75 +762,92 @@ export default function ToursCategoryDetails() {
             other tours.
           </Typography>
         ) : (
-          <>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                color: "#0f172a",
-                mb: 3,
-                fontSize: { xs: 18, md: 22 },
-              }}
-            >
-              {loadingTours
-                ? "Loading tours..."
-                : `${tours.length} Tours Found in this Category`}
-            </Typography>
-
-            <Box
-              sx={{
-                display: "grid",
-                gap: 3,
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  md: "repeat(3, minmax(0, 1fr))",
-                },
-              }}
-            >
-              {!loadingTours &&
-                tours.map((tour) => <TourCard key={tour.id} tour={tour} />)}
-            </Box>
-
-            {!loadingTours && tours.length === 0 && (
+          <Box
+            sx={{
+              display: "grid",
+              gap: 3,
+              alignItems: "start",
+              gridTemplateColumns: {
+                xs: "1fr",
+                lg: "minmax(0, 1fr) 380px",
+              },
+            }}
+          >
+            {/* LEFT: Tours */}
+            <Box sx={{ minWidth: 0 }}>
               <Typography
                 sx={{
-                  textAlign: "center",
-                  mt: 4,
-                  color: "rgba(15,23,42,0.65)",
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  mb: 3,
+                  fontSize: { xs: 18, md: 22 },
                 }}
               >
-                No tours are currently listed under this category.
+                {loadingTours
+                  ? "Loading tours..."
+                  : `${tours.length} Tours Found in this Category`}
               </Typography>
-            )}
 
-            {/* Pagination button */}
-            {!loadingTours && hasMore && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-                <Button
-                  variant="contained"
-                  disableElevation
-                  endIcon={<ArrowForwardRoundedIcon />}
-                  sx={{
-                    bgcolor: ACCENT,
-                    borderRadius: 999,
-                    textTransform: "none",
-                    fontWeight: 500,
-                    px: 3,
-                    py: 1.25,
-                    boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
-                    "&:hover": { bgcolor: "#ff5252" },
-                  }}
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? "Loading..." : "View More Tours"}
-                </Button>
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: 3,
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                  },
+                }}
+              >
+                {!loadingTours &&
+                  tours.map((tour) => <TourCard key={tour.id} tour={tour} />)}
               </Box>
-            )}
-          </>
+
+              {!loadingTours && tours.length === 0 && (
+                <Typography
+                  sx={{
+                    textAlign: "center",
+                    mt: 4,
+                    color: "rgba(15,23,42,0.65)",
+                  }}
+                >
+                  No tours are currently listed under this category.
+                </Typography>
+              )}
+
+              {!loadingTours && hasMore && (
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{
+                      bgcolor: ACCENT,
+                      borderRadius: 999,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      px: 3,
+                      py: 1.25,
+                      boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
+                      "&:hover": { bgcolor: "#ff5252" },
+                    }}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? "Loading..." : "View More Tours"}
+                  </Button>
+                </Box>
+              )}
+            </Box>
+
+            {/* RIGHT: Sidebar */}
+            <Box>
+              <TripPlanSidebar categories={allCategories} />
+            </Box>
+          </Box>
         )}
       </Container>
 
+      <CustomTourCTA />
       <Footer />
     </Box>
   );

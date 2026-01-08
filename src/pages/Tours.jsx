@@ -25,6 +25,8 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CustomTourCTA from "../components/CustomTourCTA";
+
 
 import toursBanner from "../assets/sub-banner.webp";
 
@@ -591,7 +593,7 @@ export default function Tours() {
                 onChange={(e) => setCategory(e.target.value)}
                 sx={{
                   borderRadius: 2,
-                  height: 56,
+                  height: 44,
                   fontWeight: 500,
                   bgcolor: "#fff",
                 }}
@@ -679,7 +681,7 @@ export default function Tours() {
           </Box>
         )}
       </Container>
-
+      <CustomTourCTA />
       <Footer />
     </Box>
   );

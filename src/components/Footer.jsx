@@ -1,5 +1,5 @@
 // src/components/Footer.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,12 +16,42 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 
+import { Link as RouterLink } from "react-router-dom";
+import { getPublicTourCategories } from "../api/publicCategories";
+
 // ✅ Use your real logo from assets (update path if different)
 // import logo from "../assets/logo.png";
 
-export default function Footer({
-  categories = [], // pass categories from Home if you want dynamic list
-}) {
+export default function Footer() {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCats() {
+      try {
+        const cats = await getPublicTourCategories(); // ✅ one-time fetch (no realtime)
+        if (!active) return;
+
+        // sort by order if exists
+        const sorted = Array.isArray(cats)
+          ? [...cats].sort((a, b) => (a?.order ?? 9999) - (b?.order ?? 9999))
+          : [];
+
+        setCategories(sorted);
+      } catch (e) {
+        console.error("Footer categories load error:", e);
+        if (!active) return;
+        setCategories([]);
+      }
+    }
+
+    loadCats();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Box
       sx={{
@@ -31,7 +61,7 @@ export default function Footer({
         pt: { xs: 6, md: 7 },
         pb: { xs: 3.5, md: 4 },
         overflow: "hidden",
-        borderTop: "8px solid #FF6B6B", // ✅ top pink strip like reference
+        borderTop: "8px solid #FF6B6B",
       }}
     >
       {/* big watermark text in background */}
@@ -48,10 +78,10 @@ export default function Footer({
           whiteSpace: "nowrap",
           userSelect: "none",
           pointerEvents: "none",
-          fontFamily:"ui-sans-serif,system-ui,sans-serif",
+          fontFamily: "ui-sans-serif,system-ui,sans-serif",
         }}
       >
-       All INDIA DESTINATION
+        All INDIA DESTINATION
       </Box>
 
       <Container
@@ -122,47 +152,66 @@ export default function Footer({
               Quick Links
             </Typography>
 
-            {["Home", "All Tours", "Travel Stories", "Contact Us", "About Us"].map((t) => (
+            {[
+              { t: "Home", to: "/" },
+              { t: "All Tours", to: "/tours" },
+              { t: "Travel Stories", to: "/blogs" },
+              { t: "Contact Us", to: "/contact" },
+              { t: "About Us", to: "/about" },
+            ].map((x) => (
               <Typography
-                key={t}
+                key={x.t}
+                component={RouterLink}
+                to={x.to}
                 sx={{
+                  display: "block",
                   opacity: 0.9,
                   py: 0.65,
                   cursor: "pointer",
+                  textDecoration: "none",
+                  color: "inherit",
                   "&:hover": { opacity: 1, textDecoration: "underline" },
                 }}
               >
-                {t}
+                {x.t}
               </Typography>
             ))}
           </Box>
 
-          {/* CATEGORIES */}
+          {/* ✅ CATEGORIES (DYNAMIC) */}
           <Box sx={{ minWidth: { xs: "100%", md: 220 } }}>
             <Typography sx={{ fontWeight: 700, mb: 1.4, fontSize: 18 }}>
               Categories
             </Typography>
 
-            {(categories?.length ? categories : [
-              { name: "Adventure Tours" },
-              { name: "Cultural Heritage" },
-              { name: "Wildlife Safari" },
-              { name: "Beach Holidays" },
-              { name: "Mountain Treks" },
-              { name: "Spiritual Tours" },
-            ]).slice(0, 6).map((c, idx) => (
-              <Typography
-                key={c?.id || c?.slug || c?.name || idx}
-                sx={{
-                  opacity: 0.9,
-                  py: 0.65,
-                  cursor: "pointer",
-                  "&:hover": { opacity: 1, textDecoration: "underline" },
-                }}
-              >
-                {c?.name}
+            {(categories || []).slice(0, 6).map((c, idx) => {
+              const to = c?.slug ? `/category/${c.slug}` : `/category/${c?.id || ""}`;
+              return (
+                <Typography
+                  key={c?.id || c?.slug || c?.name || idx}
+                  component={RouterLink}
+                  to={to}
+                  sx={{
+                    display: "block",
+                    opacity: 0.9,
+                    py: 0.65,
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    color: "inherit",
+                    "&:hover": { opacity: 1, textDecoration: "underline" },
+                  }}
+                >
+                  {c?.name || "Category"}
+                </Typography>
+              );
+            })}
+
+            {/* fallback if empty */}
+            {!categories?.length && (
+              <Typography sx={{ opacity: 0.75, py: 0.65 }}>
+                No categories yet
               </Typography>
-            ))}
+            )}
           </Box>
 
           {/* STAY UPDATED */}

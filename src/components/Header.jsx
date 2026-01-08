@@ -201,7 +201,7 @@ export default function Header() {
                 )}
               </Box>
 
-              <NavItem label="Blogs" to="/blogs" color={linkColor} hover={hoverColor} />
+              {/* <NavItem label="Blogs" to="/blogs" color={linkColor} hover={hoverColor} /> */}
               <NavItem
                 label="Contact"
                 to="/contact"
@@ -212,14 +212,14 @@ export default function Header() {
               <Button
                 variant="contained"
                 startIcon={<CallIcon />}
-                onClick={() => go("/contact")}
+                onClick={() => go("https://rammandirayodhyatours.com/")}
                 sx={{
                   bgcolor: "#FF6B6B",
                   "&:hover": { bgcolor: "#ff5656" },
                   boxShadow: "0 10px 26px rgba(255,107,107,0.32)",
                 }}
               >
-                Enquire Now
+                Pilgrimage Tour
               </Button>
             </Stack>
 
@@ -312,20 +312,20 @@ export default function Header() {
               )}
             </Box>
 
-            <MobileItem label="Blogs" onClick={() => go("/blogs")} />
+            {/* <MobileItem label="Blogs" onClick={() => go("/blogs")} /> */}
             <MobileItem label="Contact" onClick={() => go("/contact")} />
 
             <Button
               variant="contained"
               startIcon={<CallIcon />}
-              onClick={() => go("/contact")}
+              onClick={() => go("https://rammandirayodhyatours.com/")}
               sx={{
                 mt: 2,
                 bgcolor: "#FF6B6B",
                 "&:hover": { bgcolor: "#ff5656" },
               }}
             >
-              Enquire Now
+              Pilgrimage Tour
             </Button>
           </Stack>
         </Box>
