@@ -1,55 +1,36 @@
-// src/pages/Tours.jsx
-import React, { useEffect, useMemo, useState } from "react";
+// src/pages/ToursCategoryDetails.jsx
+import React, { useEffect, useState } from "react";
 import {
   Box,
-  Container,
-  Typography,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
   Button,
   Card,
   CardContent,
   Chip,
+  Container,
+  Typography,
+  Breadcrumbs,
+  Link as MuiLink,
   Divider,
 } from "@mui/material";
 
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
+import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
+
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CustomTourCTA from "../components/CustomTourCTA";
-
+import TripPlanSidebar from "../components/TripPlanSidebar";
 
 import toursBanner from "../assets/sub-banner.webp";
 
-// 🔹 public APIs (read-only)
-import {
-  getPublicToursPage,
-  getPublicToursByCategoryPage,
-} from "../api/publicTours";
+import { getPublicToursByCategoryPage } from "../api/publicTours";
 import { getPublicTourCategories } from "../api/publicCategories";
 
-// ✅ navigation + query params
-import { useNavigate, useSearchParams } from "react-router-dom";
-
 const ACCENT = "#ff6b6b";
-
-// keep sort list same
-const sortList = [
-  "Most Popular",
-  "Newest",
-  "Alphabetical",
-  "Duration: Low to High",
-  "Duration: High to Low",
-];
 
 function TourCard({ tour }) {
   const navigate = useNavigate();
@@ -101,9 +82,8 @@ function TourCard({ tour }) {
             left: 14,
             bgcolor: "rgba(15, 23, 42, 0.78)",
             color: "#fff",
-            fontWeight: 500,
+            fontWeight: 600,
             borderRadius: 999,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         />
 
@@ -116,9 +96,8 @@ function TourCard({ tour }) {
             right: 14,
             bgcolor: ACCENT,
             color: "#fff",
-            fontWeight: 600,
+            fontWeight: 700,
             borderRadius: 999,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         />
       </Box>
@@ -134,7 +113,7 @@ function TourCard({ tour }) {
           }}
         >
           <LocationOnOutlinedIcon sx={{ fontSize: 18 }} />
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {tour.location || "—"}
           </Typography>
         </Box>
@@ -142,11 +121,11 @@ function TourCard({ tour }) {
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 500,
+            fontWeight: 600,
             lineHeight: 1.18,
             mb: 1,
             color: "#0f172a",
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
+            fontSize: 18,
           }}
         >
           {tour.title || "Tour Title"}
@@ -173,7 +152,6 @@ function TourCard({ tour }) {
             gap: 2,
             color: "rgba(15, 23, 42, 0.70)",
             mb: 1.75,
-            fontFamily: "ui-sans-serif,system-ui,sans-serif",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
@@ -204,24 +182,10 @@ function TourCard({ tour }) {
           </Box>
         </Box>
 
-        <Divider
-          sx={{
-            my: 1.75,
-            borderColor: "rgba(15, 23, 42, 0.08)",
-          }}
-        />
+        <Divider sx={{ my: 1.75, borderColor: "rgba(15, 23, 42, 0.08)" }} />
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{ color: "rgba(15, 23, 42, 0.70)" }}
-          >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography variant="body2" sx={{ color: "rgba(15, 23, 42, 0.70)" }}>
             <Box component="span" sx={{ fontWeight: 500, color: "#0f172a" }}>
               Season:
             </Box>{" "}
@@ -250,151 +214,116 @@ function TourCard({ tour }) {
   );
 }
 
-export default function Tours() {
-  // ✅ URL query params
-  const [searchParams, setSearchParams] = useSearchParams();
+export default function ToursCategoryDetails() {
+  const { slug } = useParams();
 
-  const initialCategory = searchParams.get("category") || "all"; // now treated as slug
-  const initialSearch = searchParams.get("q") || "";
-  const initialSort = searchParams.get("sort") || "Most Popular";
+  const [category, setCategory] = useState(null);
+  const [categoryId, setCategoryId] = useState(null);
 
-  // 🔹 data from Firestore (paginated)
   const [tours, setTours] = useState([]);
-  const [categories, setCategories] = useState([]);
-
-  // pagination state
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(true);
+
+  const [loadingTours, setLoadingTours] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // 🔹 UI controls (initialised from URL)
-  // category = slug (or "all")
-  const [search, setSearch] = useState(initialSearch);
-  const [category, setCategory] = useState(initialCategory);
-  const [sort, setSort] = useState(initialSort);
+  const [notFound, setNotFound] = useState(false);
+  const [allCategories, setAllCategories] = useState([]);
 
-  // 🔁 whenever filters change, sync them to URL
-  useEffect(() => {
-    const params = {};
-
-    if (category && category !== "all") {
-      // store slug in URL
-      params.category = category;
-    }
-    if (search.trim()) {
-      params.q = search.trim();
-    }
-    if (sort && sort !== "Most Popular") {
-      params.sort = sort;
-    }
-
-    setSearchParams(params, { replace: true });
-  }, [category, search, sort, setSearchParams]);
-
-  // ---- load categories once ----
   useEffect(() => {
     let active = true;
 
-    async function loadCategories() {
-      try {
-        const cats = await getPublicTourCategories();
-        if (!active) return;
-        setCategories(cats);
-      } catch (err) {
-        console.error("Error loading public tour categories:", err);
-      }
-    }
-
-    loadCategories();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // 🔹 map slug → Firestore categoryId
-  const activeCategoryId = useMemo(() => {
-    if (category === "all") return null;
-    if (!categories || !categories.length) return null;
-
-    const match = categories.find(
-      (c) => c.slug === category || c.id === category
-    );
-    return match ? match.id : null;
-  }, [category, categories]);
-
-  // ---- load first page of tours whenever category/slug changes ----
-  useEffect(() => {
-    let active = true;
-
-    async function loadFirstPage() {
-      setLoading(true);
+    async function loadCategory() {
+      setNotFound(false);
+      setCategory(null);
+      setCategoryId(null);
       setTours([]);
       setLastDoc(null);
       setHasMore(true);
 
       try {
-        let result;
+        const cats = await getPublicTourCategories();
+        if (!active) return;
 
-        if (category === "all" || !activeCategoryId) {
-          // all published tours, page 1
-          result = await getPublicToursPage({ pageSize: 9 });
-        } else {
-          // category-wise published tours, page 1 (by id)
-          result = await getPublicToursByCategoryPage({
-            pageSize: 9,
-            categoryId: activeCategoryId,
-          });
+        setAllCategories(cats || []);
+
+        const match =
+          cats.find((c) => c.slug === slug) || cats.find((c) => c.id === slug);
+
+        if (!match) {
+          setNotFound(true);
+          return;
         }
 
-        const { items, lastDoc: newLastDoc, hasMore: more } = result;
+        setCategory(match);
+        setCategoryId(match.id);
+      } catch (err) {
+        console.error("Error loading category:", err);
+        if (!active) return;
+        setNotFound(true);
+      }
+    }
+
+    loadCategory();
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
+  useEffect(() => {
+    if (!categoryId) {
+      setLoadingTours(false);
+      return;
+    }
+
+    let active = true;
+
+    async function loadFirstTours() {
+      setLoadingTours(true);
+
+      try {
+        const { items, lastDoc: cursor, hasMore } =
+          await getPublicToursByCategoryPage({
+            categoryId,
+            pageSize: 9,
+          });
 
         if (!active) return;
+
         setTours(items);
-        setLastDoc(newLastDoc);
-        setHasMore(more);
+        setLastDoc(cursor);
+        setHasMore(hasMore);
       } catch (err) {
-        console.error("Error loading public tours page:", err);
+        console.error("Error loading tours by category:", err);
         if (!active) return;
         setTours([]);
         setLastDoc(null);
         setHasMore(false);
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoadingTours(false);
       }
     }
 
-    loadFirstPage();
+    loadFirstTours();
     return () => {
       active = false;
     };
-  }, [category, activeCategoryId]);
+  }, [categoryId]);
 
-  // "View More" → next page from Firestore
   const handleLoadMore = async () => {
-    if (loadingMore || !hasMore || !lastDoc) return;
+    if (loadingMore || !hasMore || !lastDoc || !categoryId) return;
 
     setLoadingMore(true);
     try {
-      let result;
-
-      if (category === "all" || !activeCategoryId) {
-        result = await getPublicToursPage({
+      const { items, lastDoc: cursor, hasMore: more } =
+        await getPublicToursByCategoryPage({
+          categoryId,
           pageSize: 9,
           lastDoc,
         });
-      } else {
-        result = await getPublicToursByCategoryPage({
-          pageSize: 9,
-          categoryId: activeCategoryId,
-          lastDoc,
-        });
-      }
-
-      const { items, lastDoc: newLastDoc, hasMore: more } = result;
 
       setTours((prev) => [...prev, ...items]);
-      setLastDoc(newLastDoc);
+      setLastDoc(cursor);
       setHasMore(more);
     } catch (err) {
       console.error("Error loading more tours:", err);
@@ -403,71 +332,19 @@ export default function Tours() {
     }
   };
 
-  // build category options (All + Firestore categories)
-  const categoryOptions = useMemo(() => {
-    const base = [
-      { label: "All Categories", value: "all" },
-      ...(categories || []).map((c) => ({
-        label: c.name || "Category",
-        // 🔹 use slug for value (and URL), fallback to id if slug missing
-        value: c.slug || c.id,
-      })),
-    ];
-    return base;
-  }, [categories]);
-
-  // search + sort on the currently loaded tours
-  const filtered = useMemo(() => {
-    let list = [...tours];
-
-    // search by title/location/categoryName (client-side)
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter((t) => {
-        const title = (t.title || "").toLowerCase();
-        const loc = (t.location || "").toLowerCase();
-        const catName = (t.categoryName || "").toLowerCase();
-        return (
-          title.includes(q) || loc.includes(q) || catName.includes(q)
-        );
-      });
-    }
-
-    // sort
-    if (sort === "Newest") list = [...list].reverse();
-    if (sort === "Alphabetical")
-      list = [...list].sort((a, b) =>
-        (a.title || "").localeCompare(b.title || "")
-      );
-
-    const parseDays = (str) => {
-      const m = String(str || "").match(/(\d+)\s*Days?/i);
-      return m ? Number(m[1]) : 999;
-    };
-
-    if (sort === "Duration: Low to High")
-      list = [...list].sort(
-        (a, b) => parseDays(a.duration) - parseDays(b.duration)
-      );
-    if (sort === "Duration: High to Low")
-      list = [...list].sort(
-        (a, b) => parseDays(b.duration) - parseDays(a.duration)
-      );
-
-    return list;
-  }, [search, sort, tours]);
+  const title =
+    category?.name || (notFound ? "Category Not Found" : "Loading…");
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-      {/* Hero */}
       <Box
         sx={{
           position: "relative",
-          height: { xs: 260, md: 380 },
+          height: { xs: 240, sm: 280, md: 375 },
           overflow: "hidden",
-          borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
+          borderBottom: "1px solid rgba(15, 23, 42, 0.10)",
           backgroundImage: `url(${toursBanner})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -478,7 +355,17 @@ export default function Tours() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.70) 100%)",
+              "linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.78) 70%, rgba(15,23,42,0.86) 100%)",
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(800px 380px at 50% 45%, rgba(37,99,235,0.20) 0%, rgba(0,0,0,0) 60%)",
+            pointerEvents: "none",
           }}
         />
 
@@ -489,198 +376,156 @@ export default function Tours() {
             height: "100%",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            zIndex: 2,
+            zIndex: 1,
           }}
         >
-          <Box sx={{ maxWidth: 820, px: 2 }}>
+          <Box
+            sx={{
+              width: "100%",
+              textAlign: "center",
+              color: "#fff",
+              px: { xs: 1, sm: 2 },
+            }}
+          >
             <Typography
               sx={{
-                color: "#fff",
                 fontWeight: 700,
-                letterSpacing: -0.6,
-                mb: 1,
-                fontSize: { xs: 28, sm: 35, md: 45 },
+                letterSpacing: "-0.03em",
+                fontSize: { xs: 34, sm: 44, md: 56 },
                 lineHeight: 1.05,
+                textShadow: "0 14px 40px rgba(0,0,0,0.55)",
               }}
             >
-              All Tours
+              {title}
             </Typography>
 
-            <Typography
-              sx={{
-                color: "rgba(255,255,255,0.85)",
-                fontSize: { xs: 13.5, sm: 15.5, md: 18 },
-                maxWidth: 760,
-                mx: "auto",
-              }}
-            >
-              Discover amazing destinations across India with our
-              curated tour packages
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2.5 }}>
+              <Breadcrumbs
+                aria-label="breadcrumb"
+                sx={{
+                  color: "rgba(255,255,255,0.80)",
+                  "& .MuiBreadcrumbs-separator": {
+                    color: "rgba(255,255,255,0.65)",
+                  },
+                }}
+              >
+                <MuiLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/"
+                  sx={{ fontWeight: 500 }}
+                >
+                  Home
+                </MuiLink>
+                <MuiLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/category"
+                  sx={{ fontWeight: 500 }}
+                >
+                  Categories
+                </MuiLink>
+                <Typography color="inherit" sx={{ fontWeight: 500 }}>
+                  {category?.name || "Category"}
+                </Typography>
+              </Breadcrumbs>
+            </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* Search strip */}
-      <Box
-        sx={{
-          bgcolor: "#fff",
-          borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
-          py: { xs: 2, md: 3 },
-        }}
-      >
-        <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        {notFound ? (
+          <Typography sx={{ textAlign: "center", mt: 4, color: "rgba(15,23,42,0.7)" }}>
+            We couldn&apos;t find this category. Please check the URL or explore
+            other tours.
+          </Typography>
+        ) : (
           <Box
             sx={{
               display: "grid",
-              alignItems: "center",
-              gap: 2,
+              gap: 3,
+              alignItems: "start",
               gridTemplateColumns: {
                 xs: "1fr",
-                md: "1.8fr 0.55fr 0.55fr",
+                lg: "minmax(0, 1fr) 380px",
               },
             }}
           >
-            <TextField
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tours, destinations..."
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchRoundedIcon
-                      sx={{ color: "rgba(15, 23, 42, 0.55)" }}
-                    />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end" sx={{ mr: 0 }}>
-                    <IconButton
-                      sx={{
-                        bgcolor: ACCENT,
-                        color: "#fff",
-                        borderRadius: 2,
-                        width: 54,
-                        height: 44,
-                        "&:hover": { bgcolor: "#ff5252" },
-                      }}
-                      onClick={() => console.log("search:", search)}
-                    >
-                      <SearchRoundedIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  height: 45,
-                  borderRadius: 2.25,
-                  bgcolor: "#fff",
-                  pr: 0,
-                  "& .MuiInputAdornment-positionEnd": {
-                    marginRight: 0,
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  mb: 3,
+                  fontSize: { xs: 18, md: 22 },
+                }}
+              >
+                {loadingTours
+                  ? "Loading tours..."
+                  : `${tours.length} Tours Found in this Category`}
+              </Typography>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: 3,
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
                   },
-                },
-              }}
-            />
-
-            <FormControl fullWidth>
-              <Select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                sx={{
-                  borderRadius: 2,
-                  height: 44,
-                  fontWeight: 500,
-                  bgcolor: "#fff",
                 }}
               >
-                {categoryOptions.map((c) => (
-                  <MenuItem key={c.value} value={c.value}>
-                    {c.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                {!loadingTours &&
+                  tours.map((tour) => <TourCard key={tour.id} tour={tour} />)}
+              </Box>
 
-            <FormControl fullWidth>
-              <Select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                sx={{
-                  borderRadius: 2,
-                  height: 44,
-                  fontWeight: 500,
-                  bgcolor: "#fff",
-                }}
-              >
-                {sortList.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Container>
-      </Box>
+              {!loadingTours && tours.length === 0 && (
+                <Typography
+                  sx={{
+                    textAlign: "center",
+                    mt: 4,
+                    color: "rgba(15,23,42,0.65)",
+                  }}
+                >
+                  No tours are currently listed under this category.
+                </Typography>
+              )}
 
-      {/* Results */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography
-          sx={{
-            fontWeight: 500,
-            color: "#0f172a",
-            mb: 3,
-            fontSize: { xs: 18, md: 22 },
-          }}
-        >
-          {loading ? "Loading tours..." : `${filtered.length} Tours Found`}
-        </Typography>
+              {!loadingTours && hasMore && (
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+                  <Button
+                    variant="contained"
+                    disableElevation
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{
+                      bgcolor: ACCENT,
+                      borderRadius: 999,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      px: 3,
+                      py: 1.25,
+                      boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
+                      "&:hover": { bgcolor: "#ff5252" },
+                    }}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? "Loading..." : "View More Tours"}
+                  </Button>
+                </Box>
+              )}
+            </Box>
 
-        <Box
-          sx={{
-            display: "grid",
-            gap: 3,
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, minmax(0, 1fr))",
-              md: "repeat(3, minmax(0, 1fr))",
-            },
-          }}
-        >
-          {!loading &&
-            filtered.map((tour) => <TourCard key={tour.id} tour={tour} />)}
-        </Box>
-
-        {/* Pagination button */}
-        {!loading && hasMore && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-            <Button
-              variant="contained"
-              disableElevation
-              endIcon={<ArrowForwardRoundedIcon />}
-              sx={{
-                bgcolor: ACCENT,
-                borderRadius: 999,
-                textTransform: "none",
-                fontWeight: 500,
-                px: 3,
-                py: 1.25,
-                boxShadow: "0 12px 26px rgba(255, 107, 107, 0.35)",
-                "&:hover": { bgcolor: "#ff5252" },
-              }}
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-            >
-              {loadingMore ? "Loading..." : "View More"}
-            </Button>
+            <Box>
+              <TripPlanSidebar categories={allCategories} />
+            </Box>
           </Box>
         )}
       </Container>
+
       <CustomTourCTA />
       <Footer />
     </Box>
