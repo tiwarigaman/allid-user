@@ -591,7 +591,7 @@ export default function Tours() {
                 onChange={(e) => setCategory(e.target.value)}
                 sx={{
                   borderRadius: 2,
-                  height: 56,
+                  height: 44,
                   fontWeight: 500,
                   bgcolor: "#fff",
                 }}

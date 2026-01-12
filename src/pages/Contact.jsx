@@ -347,19 +347,19 @@ export default function ContactPage() {
                 <InfoRow
                   icon={<LocationOnRoundedIcon />}
                   title="Visit Us"
-                  lines={["123 Travel Street", "New Delhi, India 110001"]}
+                  lines={["Delhi, India"]}
                   iconBg="rgba(14,107,104,0.12)"
                 />
                 <InfoRow
                   icon={<CallRoundedIcon />}
                   title="Call Us"
-                  lines={["+91 98765 43210", "+91 98765 43211"]}
+                  lines={["+91-95606 81501"]}
                   iconBg="rgba(255,107,107,0.14)"
                 />
                 <InfoRow
                   icon={<EmailRoundedIcon />}
                   title="Email Us"
-                  lines={["info@allindiadestination.com", "support@allindiadestination.com"]}
+                  lines={["delhi@allindiadestination.com"]}
                   iconBg="rgba(14,107,104,0.12)"
                 />
                 <InfoRow

@@ -68,7 +68,7 @@ export default function TripPlanSidebar({ categories = [] }) {
           </Typography>
         </Box>
 
-        <Box component="form" onSubmit={onSubmit} sx={{ p: 2, bgcolor: "#f3edde" }}>
+        <Box component="form" onSubmit={onSubmit} sx={{ p: 2, bgcolor: "rgb(244 244 244)" }}>
           <TextField
             fullWidth
             type="date"

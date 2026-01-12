@@ -99,18 +99,7 @@ export default function Footer() {
           {/* LEFT BRAND */}
           <Box sx={{ flex: 1, minWidth: 260 }}>
             <Stack direction="row" spacing={1.6} alignItems="flex-start">
-              <Box
-                component="img"
-                // src={logo}
-                alt="All India Destination"
-                sx={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 1.2,
-                  objectFit: "contain",
-                  bgcolor: "rgba(0,0,0,0.25)",
-                }}
-              />
+            
 
               <Box>
                 <Typography sx={{ fontWeight: 700, fontSize: 18, lineHeight: 1.1 }}>
