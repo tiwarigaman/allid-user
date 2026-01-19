@@ -1,5 +1,5 @@
 // src/components/TripPlanSidebar.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Button,
@@ -11,9 +11,13 @@ import {
   Paper,
   TextField,
   Typography,
+  Alert,
 } from "@mui/material";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import { Link as RouterLink } from "react-router-dom";
+
+// 🔹 API to store form in Firestore
+import { submitTourForm } from "../api/TourForm";
 
 export default function TripPlanSidebar({ categories = [] }) {
   const [form, setForm] = useState({
@@ -29,11 +33,71 @@ export default function TripPlanSidebar({ categories = [] }) {
     phone: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null); // { type: "success" | "error", message: string } | null
+
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const onSubmit = (e) => {
+  const canSubmit = useMemo(() => {
+    return (
+      form.name.trim().length > 0 &&
+      form.email.trim().length > 0 &&
+      form.phone.trim().length > 0
+    );
+  }, [form]);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    // UI only
+    if (!canSubmit || submitting) return;
+
+    setStatus(null);
+    setSubmitting(true);
+
+    try {
+      await submitTourForm({
+        arrivalDate: form.arrivalDate,
+        days: form.days,
+        adults: form.adults,
+        children: form.children,
+        accommodation: form.accommodation,
+        info: form.info,
+        name: form.name,
+        email: form.email,
+        country: form.country,
+        phone: form.phone,
+      });
+
+      setStatus({
+        type: "success",
+        message: "Thank you! Your trip details have been sent.",
+      });
+
+      // reset form
+      setForm({
+        arrivalDate: "",
+        days: "",
+        adults: "",
+        children: "",
+        accommodation: "",
+        info: "",
+        name: "",
+        email: "",
+        country: "",
+        phone: "",
+      });
+    } catch (err) {
+      console.error("Error submitting tour form:", err);
+      const msg =
+        err?.message === "Invalid email address."
+          ? "Please enter a valid email address."
+          : "Something went wrong while sending your trip details. Please try again.";
+      setStatus({
+        type: "error",
+        message: msg,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -68,7 +132,21 @@ export default function TripPlanSidebar({ categories = [] }) {
           </Typography>
         </Box>
 
-        <Box component="form" onSubmit={onSubmit} sx={{ p: 2, bgcolor: "rgb(244 244 244)" }}>
+        <Box
+          component="form"
+          onSubmit={onSubmit}
+          sx={{ p: 2, bgcolor: "rgb(244 244 244)" }}
+        >
+          {/* Status message */}
+          {status && (
+            <Alert
+              severity={status.type}
+              sx={{ mb: 1.5, borderRadius: 1, fontSize: 13 }}
+            >
+              {status.message}
+            </Alert>
+          )}
+
           <TextField
             fullWidth
             type="date"
@@ -210,13 +288,18 @@ export default function TripPlanSidebar({ categories = [] }) {
               "& .MuiOutlinedInput-root": { borderRadius: 1 },
             }}
           >
-            {["India", "United Kingdom", "United States", "Canada", "Australia", "Other"].map(
-              (v) => (
-                <MenuItem key={v} value={v}>
-                  {v}
-                </MenuItem>
-              )
-            )}
+            {[
+              "India",
+              "United Kingdom",
+              "United States",
+              "Canada",
+              "Australia",
+              "Other",
+            ].map((v) => (
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
@@ -235,6 +318,7 @@ export default function TripPlanSidebar({ categories = [] }) {
             type="submit"
             fullWidth
             startIcon={<MailOutlineRoundedIcon />}
+            disabled={!canSubmit || submitting}
             sx={{
               bgcolor: "#F97316",
               color: "#fff",
@@ -244,9 +328,13 @@ export default function TripPlanSidebar({ categories = [] }) {
               textTransform: "none",
               "&:hover": { bgcolor: "#ea6a10" },
               boxShadow: "0 12px 26px rgba(249,115,22,0.30)",
+              "&.Mui-disabled": {
+                bgcolor: "rgba(249,115,22,0.35)",
+                boxShadow: "none",
+              },
             }}
           >
-            Submit
+            {submitting ? "Submitting..." : "Submit"}
           </Button>
         </Box>
       </Paper>

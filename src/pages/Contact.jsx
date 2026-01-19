@@ -29,6 +29,9 @@ import Footer from "../components/Footer";
 import CustomTourCTA from "../components/CustomTourCTA";
 import toursBanner from "../assets/sub-banner.webp";
 
+// 🔹 Firestore API
+import { sendContactMessage } from "../api/contact";
+
 const TEAL = "#0E6B68";
 const TEAL_DARK = "#0B5B58";
 const CARD_BORDER = "1px solid rgba(15,23,42,0.08)";
@@ -83,12 +86,12 @@ export default function ContactPage() {
     message: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // { type: "success" | "error", message: string } | null
+
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const databaseConnected = false; // UI only (like screenshot)
-
   const canSend = useMemo(() => {
-    // UI only: mimic enabled/disabled feel
     return (
       form.name.trim().length > 0 &&
       form.email.trim().length > 0 &&
@@ -96,76 +99,101 @@ export default function ContactPage() {
     );
   }, [form]);
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    // UI only
+    if (!canSend || submitting) return;
+
+    setSubmitStatus(null);
+    setSubmitting(true);
+
+    try {
+      await sendContactMessage({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        message: form.message.trim(),
+      });
+
+      setSubmitStatus({
+        type: "success",
+        message: "Thank you! Your message has been sent.",
+      });
+
+      // reset form
+      setForm({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
+    } catch (err) {
+      console.error("Error sending contact message:", err);
+      const msg =
+        err?.message === "Invalid email address."
+          ? "Please enter a valid email address."
+          : "Something went wrong while sending your message. Please try again.";
+      setSubmitStatus({
+        type: "error",
+        message: msg,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <Box sx={{ bgcolor: "#f5f7fb", minHeight: "100vh" }}>
       <Header />
 
-        {/* Hero */}
-            <Box
+      {/* Hero */}
+      <Box
+        sx={{
+          position: "relative",
+          height: { xs: 260, md: 380 },
+          overflow: "hidden",
+          borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
+          backgroundImage: `url(${toursBanner})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.70) 100%)",
+          }}
+        />
+
+        <Container
+          maxWidth="lg"
+          sx={{
+            position: "relative",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            zIndex: 2,
+          }}
+        >
+          <Box sx={{ maxWidth: 820, px: 2 }}>
+            <Typography
               sx={{
-                position: "relative",
-                height: { xs: 260, md: 380 },
-                overflow: "hidden",
-                borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
-                backgroundImage: `url(${toursBanner})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
+                color: "#fff",
+                fontWeight: 700,
+                letterSpacing: -0.6,
+                mb: 1,
+                fontSize: { xs: 28, sm: 35, md: 45 },
+                lineHeight: 1.05,
               }}
             >
-              <Box
-                sx={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.70) 100%)",
-                }}
-              />
-      
-              <Container
-                maxWidth="lg"
-                sx={{
-                  position: "relative",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  zIndex: 2,
-                }}
-              >
-                <Box sx={{ maxWidth: 820, px: 2 }}>
-                  <Typography
-                    sx={{
-                      color: "#fff",
-                      fontWeight: 700,
-                      letterSpacing: -0.6,
-                      mb: 1,
-                      fontSize: { xs: 28, sm: 35, md: 45 },
-                      lineHeight: 1.05,
-                    }}
-                  >
-                    Contact Us
-                  </Typography>
-      
-                  {/* <Typography
-                    sx={{
-                      color: "rgba(255,255,255,0.85)",
-                      fontSize: { xs: 13.5, sm: 15.5, md: 18 },
-                      maxWidth: 760,
-                      mx: "auto",
-                    }}
-                  >
-                    Discover amazing destinations across India with our
-                    curated tour packages
-                  </Typography> */}
-                </Box>
-              </Container>
-            </Box>
+              Contact Us
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Main */}
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
@@ -200,8 +228,20 @@ export default function ContactPage() {
               </Typography>
 
               <Box sx={{ mt: 2 }}>
-
                 <Box component="form" onSubmit={onSubmit}>
+                  {/* Status message */}
+                  {submitStatus && (
+                    <Alert
+                      severity={submitStatus.type}
+                      sx={{
+                        mb: 2,
+                        borderRadius: 2,
+                      }}
+                    >
+                      {submitStatus.message}
+                    </Alert>
+                  )}
+
                   <Typography
                     sx={{
                       fontSize: 12.5,
@@ -298,7 +338,7 @@ export default function ContactPage() {
                     fullWidth
                     startIcon={<SendRoundedIcon />}
                     disableElevation
-                    disabled={!canSend}
+                    disabled={!canSend || submitting}
                     sx={{
                       borderRadius: 2,
                       py: 1.35,
@@ -313,7 +353,7 @@ export default function ContactPage() {
                       },
                     }}
                   >
-                    Send Message
+                    {submitting ? "Sending..." : "Send Message"}
                   </Button>
                 </Box>
               </Box>
@@ -398,8 +438,8 @@ export default function ContactPage() {
                     maxWidth: 520,
                   }}
                 >
-                  Stay connected with us on social media for the latest updates and travel
-                  inspiration
+                  Stay connected with us on social media for the latest
+                  updates and travel inspiration
                 </Typography>
 
                 <Box sx={{ mt: 2, display: "flex", gap: 1.2 }}>
@@ -445,7 +485,6 @@ export default function ContactPage() {
             }}
           >
             <Box sx={{ p: 2 }}>
-
               <Box
                 sx={{
                   width: "100%",

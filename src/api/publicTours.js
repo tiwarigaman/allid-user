@@ -194,6 +194,7 @@ export async function getPublicTourBySlugOrId(slugOrId) {
     const slugQuery = query(
       baseRef,
       where("slug", "==", slugOrId),
+      where("status", "==", "published"),
       fbLimit(1)
     );
     const slugSnap = await getDocs(slugQuery);
@@ -266,7 +267,12 @@ export async function getFeaturedTours(maxItems = 6) {
   const baseRef = collection(db, COLLECTION);
 
   // Single where → no composite index required
-  const q = query(baseRef, where("isFeatured", "==", true));
+  const q = query(
+    baseRef,
+    where("isFeatured", "==", true),
+    where("status", "==", "published")
+  );
+
   const snap = await getDocs(q);
 
   let items = snap.docs.map(mapTourDoc);
