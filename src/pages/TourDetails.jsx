@@ -360,6 +360,12 @@ export default function TourDetails() {
   // gallery index + modal
   const [activeImg, setActiveImg] = useState(0);
   const [bookOpen, setBookOpen] = useState(false);
+    React.useEffect(() => {
+      document.title = "Tour Details | Best Travel Agency in India ";
+      return () => {
+        document.title = "All India Destination – Explore India Tours";
+      };
+    }, []);
 
   // 🔹 Load tour from publicTours API
   useEffect(() => {

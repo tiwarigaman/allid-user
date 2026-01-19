@@ -255,6 +255,12 @@ export default function Tours() {
   const initialCategory = searchParams.get("category") || "all"; // now treated as slug
   const initialSearch = searchParams.get("q") || "";
   const initialSort = searchParams.get("sort") || "Most Popular";
+  React.useEffect(() => {
+    document.title = "Tours | All India Destination";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
 
   // 🔹 data from Firestore (paginated)
   const [tours, setTours] = useState([]);

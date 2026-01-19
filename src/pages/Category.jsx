@@ -156,6 +156,12 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  React.useEffect(() => {
+    document.title = "Category | All India Destination";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
   useEffect(() => {
     let active = true;
 

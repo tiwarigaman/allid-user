@@ -98,6 +98,12 @@ export default function ContactPage() {
       form.message.trim().length > 0
     );
   }, [form]);
+  React.useEffect(() => {
+    document.title = "Contact Us | All India Destination";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
 
   const onSubmit = async (e) => {
     e.preventDefault();

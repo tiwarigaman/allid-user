@@ -43,6 +43,12 @@ export default function Enquiry() {
 
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
+  React.useEffect(() => {
+    document.title = "Enquiries | All India Destination";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
 
   // filters
   const [search, setSearch] = useState("");

@@ -538,6 +538,12 @@ export default function ToursCategoryDetails() {
 
   // categories for sidebar (dynamic)
   const [allCategories, setAllCategories] = useState([]);
+  React.useEffect(() => {
+    document.title = "Category Details | All India Destination";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
 
   // 1) Resolve slug → category object (LOGIC SAME)
   useEffect(() => {

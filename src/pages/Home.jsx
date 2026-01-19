@@ -75,6 +75,12 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("");
   const [sort, setSort] = useState("popular");
+  React.useEffect(() => {
+    document.title = "All India Destination | Best Travel Agency in India ";
+    return () => {
+      document.title = "All India Destination – Explore India Tours";
+    };
+  }, []);
 
   // 🔹 NEW: data coming from Firestore via public APIs
   const [homeCategories, setHomeCategories] = useState([]);
